@@ -3,6 +3,7 @@
 # Gamio - Host Games In Telegram
 ![Version](https://img.shields.io/badge/version-1.0-blue) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+![Views](https://komarev.com/ghpvc/?username=z-fly1&repo=Gamio)
 
 
 Powerful Telegram bot designed to host and manage games in group chats.
