@@ -109,7 +109,7 @@ class GameSession:
             return True
         elif code == "9":
             self.game_code = code
-            self.game = GeneralKnowledgeGame(total_rounds=15)
+            self.game = GeneralKnowledgeGame(total_rounds=15, game_type="Answer")
             self.state = GameState.JOINING
             return True
         elif code == "10":

@@ -796,7 +796,7 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
         await query.answer()
         
     elif data.startswith("opt_"):
-        if data in ["opt_done_1", "opt_done_2", "opt_done_3", "opt_done_4", "opt_done_5", "opt_done_26"]:
+        if data in ["opt_done_1", "opt_done_2", "opt_done_3", "opt_done_4", "opt_done_5", "opt_done_9", "opt_done_26"]:
             session.is_configuring = False
             await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
             await query.answer("Options saved.")
@@ -868,6 +868,11 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
             else:
                 session.game.total_rounds = int(val_str)
                 session.game.endless = False
+            await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
+            await query.answer()
+        elif data.startswith("opt_9_gt_"):
+            val = data.split("_")[-1]
+            session.game.game_type = val
             await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
             await query.answer()
             
@@ -976,7 +981,7 @@ def get_game_instructions(game_code: str) -> str:
 
 def get_options_markup(session) -> Optional[InlineKeyboardMarkup]:
     """Get the inline keyboard for game options."""
-    if not session or session.game_code not in ["1", "2", "3", "4", "5", "26"]:
+    if not session or session.game_code not in ["1", "2", "3", "4", "5", "9", "26"]:
         return None
         
     if not getattr(session, 'is_configuring', False):
@@ -1120,6 +1125,19 @@ def get_options_markup(session) -> Optional[InlineKeyboardMarkup]:
                 InlineKeyboardButton("Endless", callback_data="opt_26_rd_endless", api_kwargs={"style": "success"} if endless else {})
             ],
             [InlineKeyboardButton("⬅", callback_data="opt_done_26", api_kwargs={"style": "primary"})]
+        ]
+        return InlineKeyboardMarkup(keyboard)
+
+    elif session.game_code == "9":
+        gt = getattr(game, 'game_type', 'Answer')
+
+        keyboard = [
+            [InlineKeyboardButton("Game Type:", callback_data="ignore_opt")],
+            [
+                InlineKeyboardButton("Answer", callback_data="opt_9_gt_Answer", api_kwargs={"style": "success"} if gt=="Answer" else {}),
+                InlineKeyboardButton("MCQ", callback_data="opt_9_gt_MCQ", api_kwargs={"style": "success"} if gt=="MCQ" else {})
+            ],
+            [InlineKeyboardButton("⬅", callback_data="opt_done_9", api_kwargs={"style": "primary"})]
         ]
         return InlineKeyboardMarkup(keyboard)
 
@@ -1740,6 +1758,8 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         # Handle General Knowledge Game
         elif session.game_code == "9":
+            if session.game.game_type == "MCQ":
+                return
             if session.game.check_answer(user.id, message.text):
                 # Correct answer
                 score = session.game.scores.get(user.id, 0)
@@ -2467,7 +2487,7 @@ async def quit_vote_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, me
     # If the user who initiated is playing, add their vote automatically if we wanted, but let's let them vote manually.
 
 async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle poll answers for quit votes and imposter game votes."""
+    """Handle poll answers for quit votes, imposter game votes, and GK MCQ polls."""
     answer = update.poll_answer
     poll_id = answer.poll_id
     user_id = answer.user.id
@@ -2484,6 +2504,10 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
             session = s
             poll_type = "imposter"
             break
+        elif getattr(s, 'gk_mcq_poll_id', None) == poll_id:
+            session = s
+            poll_type = "gk_mcq"
+            break
             
     if not session:
         return
@@ -2493,11 +2517,13 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
 
     if poll_type == "quit":
-        # Option 0 is "Quit"
         if 0 in answer.option_ids:
             session.quit_votes.add(user_id)
         else:
             session.quit_votes.discard(user_id)
+    elif poll_type == "gk_mcq":
+        if answer.option_ids:
+            session.gk_mcq_answers[user_id] = answer.option_ids[0]
     elif poll_type == "imposter":
         if not session.game.is_voting or session.game.game_over:
             return
@@ -2508,15 +2534,11 @@ async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE)
             if target_id:
                 session.game.vote(user_id, target_id)
                 
-                # Check if all players have voted to resolve early
                 if session.game.is_voting_complete():
                     try:
                         await context.bot.stop_poll(session.chat_id, getattr(session, 'imposter_poll_id'))
                     except Exception:
                         pass
-                    # Pass the chat_id from session
-                    # We have to await it, but we don't have chat_id easily accessible in poll_answer, 
-                    # but session has it! (session.chat_id)
                     asyncio.create_task(resolve_imposter_game(session.chat_id, context, session))
         else:
             if user_id in session.game.votes:
@@ -3634,11 +3656,14 @@ async def start_general_knowledge_round(chat_id: int, context: ContextTypes.DEFA
     if not session or session.game_code != "9":
         return
 
-    # Delay slightly
     await asyncio.sleep(2)
-    
+
+    if session.game.game_type == "MCQ":
+        await start_general_knowledge_mcq_round(chat_id, context)
+        return
+
     question_text, round_num = session.game.start_new_round()
-    
+
     await context.bot.send_message(
         chat_id=chat_id,
         text=f"🧠 <b>General Knowledge!</b>\n"
@@ -3648,32 +3673,100 @@ async def start_general_knowledge_round(chat_id: int, context: ContextTypes.DEFA
         parse_mode="HTML"
     )
 
-    # Start timeout task (60 seconds)
     track_game_task(chat_id, asyncio.create_task(general_knowledge_timeout(chat_id, context, round_num)))
+
+
+async def start_general_knowledge_mcq_round(chat_id: int, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Start an MCQ round using native Telegram quiz poll."""
+    session = game_manager.get_game(chat_id)
+    if not session or session.game_code != "9":
+        return
+
+    question_text, round_num = session.game.start_new_round()
+    options, correct_id = session.game.get_mcq_options()
+
+    poll_message = await context.bot.send_poll(
+        chat_id=chat_id,
+        question=f"🧠 Round {round_num}/{session.game.total_rounds}: {question_text}",
+        options=options,
+        type="quiz",
+        correct_option_id=correct_id,
+        is_anonymous=False,
+        allows_multiple_answers=False,
+        open_period=45
+    )
+
+    session.gk_mcq_poll_id = poll_message.poll.id
+    session.gk_mcq_answers = {}
+    session.gk_mcq_round_num = round_num
+
+    track_game_task(chat_id, asyncio.create_task(general_knowledge_mcq_timeout(chat_id, context, round_num, correct_id)))
+
+
+async def general_knowledge_mcq_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round_num: int, correct_id: int) -> None:
+    """Handle timeout for General Knowledge MCQ round."""
+    await asyncio.sleep(45)
+
+    session = game_manager.get_game(chat_id)
+    if not session or session.game_code != "9":
+        return
+
+    if session.game.current_round == round_num and session.game.round_in_progress:
+        session.game.round_in_progress = False
+        session.gk_mcq_poll_id = None
+
+        answer_text = session.game.get_current_answer()
+        correct_users = []
+        wrong_users = []
+
+        for user_id, selected_id in getattr(session, 'gk_mcq_answers', {}).items():
+            if selected_id == correct_id:
+                session.game.answer_mcq(user_id, selected_id)
+                name = session.game.players.get(user_id, "Player")
+                correct_users.append(f"<a href=\"tg://user?id={user_id}\">{name}</a>")
+            else:
+                name = session.game.players.get(user_id, "Player")
+                wrong_users.append(f"<a href=\"tg://user?id={user_id}\">{name}</a>")
+
+        parts = [f"⏰ <b>Time's Up!</b>\n\nThe answer was: <b>{answer_text}</b>\n"]
+        if correct_users:
+            parts.append(f"✅ Correct ({len(correct_users)}): {', '.join(correct_users)}")
+        if wrong_users:
+            parts.append(f"❌ Wrong ({len(wrong_users)}): {', '.join(wrong_users)}")
+        if not correct_users and not wrong_users:
+            parts.append("No one answered.")
+
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text="\n".join(parts),
+            parse_mode="HTML"
+        )
+
+        if session.game.is_game_over():
+            await end_game(chat_id, context, session)
+        else:
+            await start_general_knowledge_round(chat_id, context)
 
 
 async def general_knowledge_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round_num: int) -> None:
     """Handle timeout for General Knowledge round."""
     await asyncio.sleep(60)
-    
+
     session = game_manager.get_game(chat_id)
     if not session or session.game_code != "9":
         return
-    
-    # Check if we are still in the same round and it's in progress
+
     if session.game.current_round == round_num and session.game.round_in_progress:
-        # Time up - No winner
         session.game.round_in_progress = False
         answer = session.game.get_current_answer()
-        
+
         await context.bot.send_message(
             chat_id=chat_id,
             text=f"⏰ <b>Time's Up!</b>\n\n"
                  f"The answer was: <b>{answer}</b>",
             parse_mode="HTML"
         )
-        
-        # Check game over or start next round
+
         if session.game.is_game_over():
             await end_game(chat_id, context, session)
         else:
