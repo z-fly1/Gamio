@@ -8,9 +8,10 @@ from typing import List, Dict, Optional, Union, Tuple
 class GeneralKnowledgeGame:
     """Manages a general knowledge trivia game with multiple rounds."""
 
-    def __init__(self, total_rounds: int = 15, game_type: str = "Answer"):
+    def __init__(self, total_rounds: int = 15, game_type: str = "Answer", time_limit: int = 30):
         self.total_rounds = total_rounds
         self.game_type = game_type
+        self.time_limit = time_limit
         self.current_round = 0
         self.scores: Dict[int, int] = {}
         self.questions: List[Dict] = []

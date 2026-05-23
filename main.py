@@ -875,6 +875,11 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
             session.game.game_type = val
             await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
             await query.answer()
+        elif data.startswith("opt_9_tm_"):
+            val = int(data.split("_")[-1])
+            session.game.time_limit = val
+            await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
+            await query.answer()
             
     elif data.startswith("game_options_"):
         session.is_configuring = True
@@ -1130,12 +1135,19 @@ def get_options_markup(session) -> Optional[InlineKeyboardMarkup]:
 
     elif session.game_code == "9":
         gt = getattr(game, 'game_type', 'Answer')
+        tm = getattr(game, 'time_limit', 30)
 
         keyboard = [
             [InlineKeyboardButton("Game Type:", callback_data="ignore_opt")],
             [
                 InlineKeyboardButton("Answer", callback_data="opt_9_gt_Answer", api_kwargs={"style": "success"} if gt=="Answer" else {}),
                 InlineKeyboardButton("MCQ", callback_data="opt_9_gt_MCQ", api_kwargs={"style": "success"} if gt=="MCQ" else {})
+            ],
+            [InlineKeyboardButton("Time Limit:", callback_data="ignore_opt")],
+            [
+                InlineKeyboardButton("25s", callback_data="opt_9_tm_25", api_kwargs={"style": "success"} if tm==25 else {}),
+                InlineKeyboardButton("30s", callback_data="opt_9_tm_30", api_kwargs={"style": "success"} if tm==30 else {}),
+                InlineKeyboardButton("45s", callback_data="opt_9_tm_45", api_kwargs={"style": "success"} if tm==45 else {})
             ],
             [InlineKeyboardButton("⬅", callback_data="opt_done_9", api_kwargs={"style": "primary"})]
         ]
@@ -3663,6 +3675,7 @@ async def start_general_knowledge_round(chat_id: int, context: ContextTypes.DEFA
         await start_general_knowledge_mcq_round(chat_id, context)
         return
 
+    time_limit = session.game.time_limit
     question_text, round_num = session.game.start_new_round()
 
     await context.bot.send_message(
@@ -3670,11 +3683,11 @@ async def start_general_knowledge_round(chat_id: int, context: ContextTypes.DEFA
         text=f"🧠 <b>General Knowledge!</b>\n"
              f"Round {round_num}/{session.game.total_rounds}\n\n"
              f"👉 <b>{question_text}</b>\n\n"
-             f"First to guess gets a point! (60s)",
+             f"First to guess gets a point! ({time_limit}s)",
         parse_mode="HTML"
     )
 
-    track_game_task(chat_id, asyncio.create_task(general_knowledge_timeout(chat_id, context, round_num)))
+    track_game_task(chat_id, asyncio.create_task(general_knowledge_timeout(chat_id, context, round_num, time_limit)))
 
 
 async def start_general_knowledge_mcq_round(chat_id: int, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -3683,6 +3696,7 @@ async def start_general_knowledge_mcq_round(chat_id: int, context: ContextTypes.
     if not session or session.game_code != "9":
         return
 
+    time_limit = session.game.time_limit
     question_text, round_num = session.game.start_new_round()
     options, correct_id = session.game.get_mcq_options()
 
@@ -3694,19 +3708,19 @@ async def start_general_knowledge_mcq_round(chat_id: int, context: ContextTypes.
         correct_option_id=correct_id,
         is_anonymous=False,
         allows_multiple_answers=False,
-        open_period=45
+        open_period=time_limit
     )
 
     session.gk_mcq_poll_id = poll_message.poll.id
     session.gk_mcq_answers = {}
     session.gk_mcq_round_num = round_num
 
-    track_game_task(chat_id, asyncio.create_task(general_knowledge_mcq_timeout(chat_id, context, round_num, correct_id)))
+    track_game_task(chat_id, asyncio.create_task(general_knowledge_mcq_timeout(chat_id, context, round_num, correct_id, time_limit)))
 
 
-async def general_knowledge_mcq_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round_num: int, correct_id: int) -> None:
+async def general_knowledge_mcq_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round_num: int, correct_id: int, time_limit: int) -> None:
     """Handle timeout for General Knowledge MCQ round."""
-    await asyncio.sleep(45)
+    await asyncio.sleep(time_limit)
 
     session = game_manager.get_game(chat_id)
     if not session or session.game_code != "9":
@@ -3749,9 +3763,9 @@ async def general_knowledge_mcq_timeout(chat_id: int, context: ContextTypes.DEFA
             await start_general_knowledge_round(chat_id, context)
 
 
-async def general_knowledge_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round_num: int) -> None:
+async def general_knowledge_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round_num: int, time_limit: int) -> None:
     """Handle timeout for General Knowledge round."""
-    await asyncio.sleep(60)
+    await asyncio.sleep(time_limit)
 
     session = game_manager.get_game(chat_id)
     if not session or session.game_code != "9":
