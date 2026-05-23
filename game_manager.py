@@ -239,7 +239,8 @@ class GameSession:
         Returns:
             True if game started, False if not enough players
         """
-        if len(self.players) < 2:
+        min_players = 1 if self.game_code == "9" else 2
+        if len(self.players) < min_players:
             return False
         
         self.state = GameState.IN_PROGRESS
