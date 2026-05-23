@@ -1214,7 +1214,8 @@ async def start_game_after_delay(chat_id: int, context: ContextTypes.DEFAULT_TYP
         return
     
     # Check if enough players joined
-    if session.get_player_count() < 2:
+    min_players = 1 if session.game_code == "9" else 2
+    if session.get_player_count() < min_players:
         await context.bot.send_message(
             chat_id=chat_id,
             text="<i>Not enough players joined.</i> <b>❌ Game cancelled.</b>\n"
