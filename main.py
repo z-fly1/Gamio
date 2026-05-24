@@ -3727,9 +3727,6 @@ async def general_knowledge_mcq_timeout(chat_id: int, context: ContextTypes.DEFA
         return
 
     if session.game.current_round == round_num and session.game.round_in_progress:
-        session.game.round_in_progress = False
-        session.gk_mcq_poll_id = None
-
         answer_text = session.game.get_current_answer()
         correct_users = []
         wrong_users = []
@@ -3742,6 +3739,9 @@ async def general_knowledge_mcq_timeout(chat_id: int, context: ContextTypes.DEFA
             else:
                 name = session.game.players.get(user_id, "Player")
                 wrong_users.append(f"<a href=\"tg://user?id={user_id}\">{name}</a>")
+
+        session.game.round_in_progress = False
+        session.gk_mcq_poll_id = None
 
         parts = [f"⏰ <b>Time's Up!</b>\n\nThe answer was: <b>{answer_text}</b>\n"]
         if correct_users:
