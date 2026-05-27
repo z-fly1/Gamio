@@ -54,6 +54,7 @@ from taylor_shakespeare import TaylorShakespeareGame
 from twenty_questions import TwentyQuestionsGame
 from guess_the_song import GuessTheSongGame
 from song_from_lyrics import SongFromLyricsGame
+from riddles_game import RiddlesGame
 from crazy_eight import Crazy8Game
 from guess_the_book import GuessTheBookGame
 from guess_the_marvel import GuessMarvelGame
@@ -408,7 +409,7 @@ GAME_CATEGORIES = {
     "Trivia & Knowledge": {
         "games": [
             ("9", "General Knowledge"), ("13", "Taylor Swift Or Shakespeare"),
-            ("7", "Guess the Flag")
+            ("7", "Guess the Flag"), ("27", "Riddles")
         ]
     },
     "Music & Media": {
@@ -447,7 +448,8 @@ GAMES_METADATA = {
     "22": ("Name the Player", "2"),
     "23": ("Movie Scene", "2"),
     "25": ("Who Am I", "2"),
-    "26": ("Song From Lyrics", "2")
+    "26": ("Song From Lyrics", "2"),
+    "27": ("Riddles", "2")
 }
 
 # Game Cover Images
@@ -474,7 +476,8 @@ GAME_COVERS = {
     "22": "Name the Player.png",
     "23": "Movie Scene.png",
     "25": "Who Am I.png",
-    "26": "Guess the Song.png"
+    "26": "Guess the Song.png",
+    "27": "Riddles.png"
 }
 
 
@@ -654,7 +657,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def new_round_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /new4, /new5, /new6 commands to start a new endless round."""
+    """Handle /new4, /new5, /new6, /newsong, /newriddle commands to start a new endless round."""
     chat = update.effective_chat
     if chat.type == ChatType.PRIVATE:
         return
@@ -669,6 +672,9 @@ async def new_round_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     elif session.game_code == "26":
         if getattr(session.game, 'endless', False):
             await start_sfl_round(chat.id, context)
+    elif session.game_code == "27":
+        if getattr(session.game, 'endless', False) and not session.game.round_in_progress:
+            await start_riddle_round(chat.id, context)
 
 
 async def settings_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -796,7 +802,7 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
         await query.answer()
         
     elif data.startswith("opt_"):
-        if data in ["opt_done_1", "opt_done_2", "opt_done_3", "opt_done_4", "opt_done_5", "opt_done_9", "opt_done_26"]:
+        if data in ["opt_done_1", "opt_done_2", "opt_done_3", "opt_done_4", "opt_done_5", "opt_done_9", "opt_done_26", "opt_done_27"]:
             session.is_configuring = False
             await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
             await query.answer("Options saved.")
@@ -870,6 +876,15 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
                 session.game.endless = False
             await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
             await query.answer()
+        elif data.startswith("opt_27_rd_"):
+            val_str = data.split("_")[-1]
+            if val_str == "endless":
+                session.game.endless = True
+            else:
+                session.game.total_rounds = int(val_str)
+                session.game.endless = False
+            await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
+            await query.answer()
         elif data.startswith("opt_9_gt_"):
             val = data.split("_")[-1]
             session.game.game_type = val
@@ -923,6 +938,7 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
                 "22": ("Name the Player", "2"),
                 "23": ("Movie Scene", "2"),
                 "26": ("Song From Lyrics", "2"),
+                "27": ("Riddles", "2"),
             }
             
             game_name, min_players = game_info.get(game_code, ("General Knowledge", "2"))
@@ -979,14 +995,15 @@ def get_game_instructions(game_code: str) -> str:
     instructions = {
         "1": "<blockquote expandable><b>How to Play:</b>\n‣ Rearrange the letters to form a correct word.\n‣ Type your answer and send it in the chat.\n‣ Each correct answer earns you points.\n‣ The player with the highest score wins.</blockquote>",
         "25": "<blockquote expandable><b>How to Play:</b>\n‣ Everyone gets a celebrity assigned to them.\n‣ On your turn, others see who you are, but you don't.\n‣ Ask questions in the group to guess your celebrity.\n‣ Once you know, type the name in the chat.\n‣ Shortest time to guess wins!</blockquote>",
-        "26": "<blockquote expandable><b>How to Play:</b>\n‣ Guess the Song Title and Artist from the provided lyrics.\n‣ Use the '▶Next Line' button to reveal more lines if needed.\n‣ Each correct part (Title or Artist) earns you 2 points.\n‣ Guess both to complete the round!</blockquote>"
+        "26": "<blockquote expandable><b>How to Play:</b>\n‣ Guess the Song Title and Artist from the provided lyrics.\n‣ Use the '▶Next Line' button to reveal more lines if needed.\n‣ Each correct part (Title or Artist) earns you 2 points.\n‣ Guess both to complete the round!</blockquote>",
+        "27": "<blockquote expandable><b>How to Play:</b>\n‣ Read the riddle and type your answer in the chat.\n‣ Each correct answer earns you 1 point.\n‣ First to answer gets the point!\n‣ Player with the most points wins!</blockquote>"
     }
     return instructions.get(game_code, "")
 
 
 def get_options_markup(session) -> Optional[InlineKeyboardMarkup]:
     """Get the inline keyboard for game options."""
-    if not session or session.game_code not in ["1", "2", "3", "4", "5", "9", "26"]:
+    if not session or session.game_code not in ["1", "2", "3", "4", "5", "9", "26", "27"]:
         return None
         
     if not getattr(session, 'is_configuring', False):
@@ -1130,6 +1147,20 @@ def get_options_markup(session) -> Optional[InlineKeyboardMarkup]:
                 InlineKeyboardButton("Endless", callback_data="opt_26_rd_endless", api_kwargs={"style": "success"} if endless else {})
             ],
             [InlineKeyboardButton("⬅", callback_data="opt_done_26", api_kwargs={"style": "primary"})]
+        ]
+        return InlineKeyboardMarkup(keyboard)
+
+    elif session.game_code == "27":
+        tr = getattr(game, 'total_rounds', 10)
+        endless = getattr(game, 'endless', False)
+
+        keyboard = [
+            [InlineKeyboardButton("Rounds:", callback_data="ignore_opt")],
+            [
+                InlineKeyboardButton("10", callback_data="opt_27_rd_10", api_kwargs={"style": "success"} if tr==10 and not endless else {}),
+                InlineKeyboardButton("Endless", callback_data="opt_27_rd_endless", api_kwargs={"style": "success"} if endless else {})
+            ],
+            [InlineKeyboardButton("⬅", callback_data="opt_done_27", api_kwargs={"style": "primary"})]
         ]
         return InlineKeyboardMarkup(keyboard)
 
@@ -1289,6 +1320,13 @@ async def start_game_after_delay(chat_id: int, context: ContextTypes.DEFAULT_TYP
                 f"\n\n<blockquote><b>Mode:</b>\n"
                 f"Rounds: {rounds}</blockquote>"
             )
+        elif session.game_code == "27":
+            endless = getattr(session.game, 'endless', False)
+            rounds = "Endless" if endless else getattr(session.game, 'total_rounds', 10)
+            mode_text = (
+                f"\n\n<blockquote><b>Mode:</b>\n"
+                f"Rounds: {rounds}</blockquote>"
+            )
 
         await context.bot.send_message(
             chat_id=chat_id,
@@ -1368,6 +1406,9 @@ async def start_game_after_delay(chat_id: int, context: ContextTypes.DEFAULT_TYP
         elif session.game_code == "26":
             # Song From Lyrics
             await start_sfl_game(chat_id, context, session)
+        elif session.game_code == "27":
+            # Riddles
+            await start_riddle_round(chat_id, context)
 
 
 
@@ -2141,6 +2182,40 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 )
                 session.game.next_turn()
                 await play_who_am_i_turn(chat.id, context, session)
+
+        # Handle Riddles Game
+        elif session.game_code == "27":
+            if not session.game.round_in_progress:
+                return
+
+            user_id = user.id
+            text = message.text.strip()
+            display_name = user.first_name or user.username or "Player"
+
+            if session.game.check_answer(text, user_id):
+                session.game.round_in_progress = False
+                try:
+                    await message.set_reaction(reaction=ReactionTypeEmoji(emoji="🎉"))
+                except Exception:
+                    pass
+
+                score = session.game.scores.get(user_id, 0)
+                await message.reply_text(
+                    f"🎉 <b>Correct! <a href=\"tg://user?id={user.id}\">{display_name}</a></b>\n\n"
+                    f"Answer: <b>{session.game.get_current_answer()}</b>\n"
+                    f"Your score: <b>{score}</b> point(s)",
+                    parse_mode="HTML"
+                )
+
+                await asyncio.sleep(3)
+
+                if session.game.is_game_over():
+                    await end_game(chat.id, context, session)
+                else:
+                    if not session.game.endless:
+                        await start_riddle_round(chat.id, context)
+                    else:
+                        await message.reply_text("use /newriddle to start the next riddle!")
 
         # Handle Song From Lyrics Game
         elif session.game_code == "26":
@@ -4748,6 +4823,58 @@ async def song_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round_n
             await start_song_round(chat_id, context)
 
 
+async def start_riddle_round(chat_id: int, context: ContextTypes.DEFAULT_TYPE) -> None:
+    session = game_manager.get_game(chat_id)
+    if not session or session.game_code != "27":
+        return
+
+    await asyncio.sleep(2)
+
+    if session.game.is_game_over() and not session.game.endless:
+        await end_game(chat_id, context, session)
+        return
+
+    question, round_num = session.game.start_new_round()
+    total = session.game.total_rounds
+    round_text = f"Riddle {round_num}/{total}" if not session.game.endless else f"Riddle {round_num}"
+
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=f"🧩 <b>Riddles</b>\n{round_text}\n\n<blockquote>{question}</blockquote>\n\n<i>Type your answer in the chat!</i>",
+        parse_mode="HTML"
+    )
+
+    track_game_task(chat_id, asyncio.create_task(riddle_timeout(chat_id, context, round_num)))
+
+
+async def riddle_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round_num: int) -> None:
+    await asyncio.sleep(30)
+
+    session = game_manager.get_game(chat_id)
+    if not session or session.game_code != "27":
+        return
+
+    if session.game.current_round == round_num and session.game.round_in_progress:
+        session.game.round_in_progress = False
+        answer = session.game.get_current_answer()
+
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"⏰ <b>Time's Up!</b>\n\nAnswer: <b>{answer}</b>",
+            parse_mode="HTML"
+        )
+
+        await asyncio.sleep(3)
+
+        if session.game.is_game_over():
+            await end_game(chat_id, context, session)
+        else:
+            if not session.game.endless:
+                await start_riddle_round(chat_id, context)
+            else:
+                await context.bot.send_message(chat_id=chat_id, text="use /newriddle to start the next riddle!")
+
+
 async def start_sfl_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session) -> None:
     """Start the Song From Lyrics game."""
     await start_sfl_round(chat_id, context)
@@ -4954,6 +5081,7 @@ async def post_init(application: Application) -> None:
         BotCommand("leave", "Leave the game"),
         BotCommand("skip", "Skip current round"),
         BotCommand("newsong", "Next song (endless mode)"),
+        BotCommand("newriddle", "Next riddle (endless mode)"),
         BotCommand("leaderboard", "Show group leaderboard"),
         BotCommand("extend", "[admin] extend joining period by 10 seconds"),
         BotCommand("quit", "[admin] Stop current game in progress"),
@@ -5380,6 +5508,7 @@ def main() -> None:
     
     # Add new song round command
     application.add_handler(CommandHandler("newsong", new_round_command))
+    application.add_handler(CommandHandler("newriddle", new_round_command))
     application.add_handler(CommandHandler("skip", skip_command))
     application.add_handler(CommandHandler("flappy", flappy_command))
     application.add_handler(CommandHandler("minigames", minigames_command))

@@ -28,6 +28,7 @@ from name_the_player import NameThePlayerGame
 from movie_scene import MovieSceneGame
 from who_am_i import WhoAmIGame
 from song_from_lyrics import SongFromLyricsGame
+from riddles_game import RiddlesGame
 
 
 
@@ -52,7 +53,7 @@ class GameSession:
         self.state = GameState.WAITING_FOR_GAME_CODE
         self.game_code: Optional[str] = None
         self.players: Set[int] = set()  # Set of user IDs
-        self.game: Optional[Union[WordUnscrambleGame, StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessMojiGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame]] = None
+        self.game: Optional[Union[WordUnscrambleGame, StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessMojiGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame, RiddlesGame]] = None
 
         self.joining_deadline: Optional[datetime] = None
         
@@ -190,6 +191,12 @@ class GameSession:
             self.state = GameState.JOINING
             return True
 
+        elif code == "27":
+            self.game_code = code
+            self.game = RiddlesGame(total_rounds=10)
+            self.state = GameState.JOINING
+            return True
+
         return False
     
     def add_player(self, user_id: int, username: Optional[str] = None) -> bool:
@@ -208,7 +215,7 @@ class GameSession:
         self.players.add(user_id)
         if self.game:
             # Handle different game signatures
-            if isinstance(self.game, (StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame)):
+            if isinstance(self.game, (StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame, RiddlesGame)):
 
                 display_name = username or "Player"
                 self.game.add_player(user_id, display_name)
@@ -239,7 +246,7 @@ class GameSession:
         Returns:
             True if game started, False if not enough players
         """
-        min_players = 1 if self.game_code == "9" else 2
+        min_players = 1 if self.game_code in ["9", "27"] else 2
         if len(self.players) < min_players:
             return False
         
