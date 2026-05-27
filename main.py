@@ -4849,7 +4849,7 @@ async def start_riddle_round(chat_id: int, context: ContextTypes.DEFAULT_TYPE) -
 
     await context.bot.send_message(
         chat_id=chat_id,
-        text=f"🧩 <b>Riddles</b>\n{round_text}\n\n<blockquote>{question}</blockquote>\n\n<i>Type your answer in the chat!</i>",
+        text=f"🧩 <b>Riddles</b>\n{round_text}\n\n<blockquote>{question}</blockquote>",
         parse_mode="HTML"
     )
 
