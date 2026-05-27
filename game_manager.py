@@ -215,7 +215,7 @@ class GameSession:
         self.players.add(user_id)
         if self.game:
             # Handle different game signatures
-            if isinstance(self.game, (StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame, RiddlesGame)):
+            if isinstance(self.game, (StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame)):
 
                 display_name = username or "Player"
                 self.game.add_player(user_id, display_name)
