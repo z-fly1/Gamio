@@ -912,6 +912,8 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
             used_images = settings_manager.get_setting(chat_id, "seen_soccer_players", [])
         elif game_code == "23":
             used_images = settings_manager.get_setting(chat_id, "seen_movie_scenes", [])
+        elif game_code == "27":
+            used_images = settings_manager.get_setting(chat_id, "seen_riddles", [])
             
         if session.set_game_code(game_code, used_images=used_images):
             # Define game names and min players
@@ -2207,6 +2209,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                     parse_mode="HTML"
                 )
 
+                save_riddles_progress(chat.id, session)
                 await asyncio.sleep(3)
 
                 if session.game.is_game_over():
@@ -3547,6 +3550,12 @@ def save_addis_progress(chat_id: int, session: GameSession) -> None:
         settings_manager.set_setting(chat_id, "seen_addis", session.game.used_images)
 
 
+def save_riddles_progress(chat_id: int, session: GameSession) -> None:
+    """Save the persistent progress for Riddles."""
+    if session and session.game_code == "27" and session.game:
+        settings_manager.set_setting(chat_id, "seen_riddles", session.game.used_riddles)
+
+
 async def start_guessmoji_round(chat_id: int, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Start a new round of GuessMoji."""
     session = game_manager.get_game(chat_id)
@@ -4864,6 +4873,7 @@ async def riddle_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round
             parse_mode="HTML"
         )
 
+        save_riddles_progress(chat_id, session)
         await asyncio.sleep(3)
 
         if session.game.is_game_over():

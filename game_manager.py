@@ -193,7 +193,7 @@ class GameSession:
 
         elif code == "27":
             self.game_code = code
-            self.game = RiddlesGame(total_rounds=10)
+            self.game = RiddlesGame(total_rounds=10, used_riddles=used_images)
             self.state = GameState.JOINING
             return True
 

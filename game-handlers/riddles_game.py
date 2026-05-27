@@ -5,13 +5,13 @@ from typing import List, Dict, Optional, Tuple
 
 
 class RiddlesGame:
-    def __init__(self, total_rounds: int = 10, endless: bool = False):
+    def __init__(self, total_rounds: int = 10, endless: bool = False, used_riddles: Optional[List[str]] = None):
         self.total_rounds = total_rounds
         self.endless = endless
         self.current_round = 0
         self.scores: Dict[int, int] = {}
         self.current_riddle: Optional[dict] = None
-        self.used_riddles: List[str] = []
+        self.used_riddles = used_riddles if used_riddles is not None else []
         self.round_in_progress = False
 
         json_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "riddles", "riddles.json")
