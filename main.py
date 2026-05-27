@@ -885,6 +885,11 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
                 session.game.endless = False
             await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
             await query.answer()
+        elif data.startswith("opt_27_tm_"):
+            val = int(data.split("_")[-1])
+            session.game.time_limit = val
+            await query.edit_message_reply_markup(reply_markup=get_options_markup(session))
+            await query.answer()
         elif data.startswith("opt_9_gt_"):
             val = data.split("_")[-1]
             session.game.game_type = val
@@ -1155,15 +1160,25 @@ def get_options_markup(session) -> Optional[InlineKeyboardMarkup]:
     elif session.game_code == "27":
         tr = getattr(game, 'total_rounds', 10)
         endless = getattr(game, 'endless', False)
+        tm = getattr(game, 'time_limit', 30)
 
         keyboard = [
             [InlineKeyboardButton("Rounds:", callback_data="ignore_opt")],
             [
                 InlineKeyboardButton("10", callback_data="opt_27_rd_10", api_kwargs={"style": "success"} if tr==10 and not endless else {}),
                 InlineKeyboardButton("Endless", callback_data="opt_27_rd_endless", api_kwargs={"style": "success"} if endless else {})
-            ],
-            [InlineKeyboardButton("⬅", callback_data="opt_done_27", api_kwargs={"style": "primary"})]
+            ]
         ]
+
+        if not endless:
+            keyboard.append([InlineKeyboardButton("Time:", callback_data="ignore_opt")])
+            keyboard.append([
+                InlineKeyboardButton("30s", callback_data="opt_27_tm_30", api_kwargs={"style": "success"} if tm==30 else {}),
+                InlineKeyboardButton("45s", callback_data="opt_27_tm_45", api_kwargs={"style": "success"} if tm==45 else {}),
+                InlineKeyboardButton("60s", callback_data="opt_27_tm_60", api_kwargs={"style": "success"} if tm==60 else {})
+            ])
+
+        keyboard.append([InlineKeyboardButton("⬅", callback_data="opt_done_27", api_kwargs={"style": "primary"})])
         return InlineKeyboardMarkup(keyboard)
 
     elif session.game_code == "9":
@@ -4857,7 +4872,10 @@ async def start_riddle_round(chat_id: int, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def riddle_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, round_num: int) -> None:
-    await asyncio.sleep(30)
+    session = game_manager.get_game(chat_id)
+    time_limit = getattr(session.game, 'time_limit', 30) if session and session.game_code == "27" else 30
+
+    await asyncio.sleep(time_limit)
 
     session = game_manager.get_game(chat_id)
     if not session or session.game_code != "27":

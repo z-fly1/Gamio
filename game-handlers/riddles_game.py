@@ -8,6 +8,7 @@ class RiddlesGame:
     def __init__(self, total_rounds: int = 10, endless: bool = False, used_riddles: Optional[List[str]] = None):
         self.total_rounds = total_rounds
         self.endless = endless
+        self.time_limit = 30
         self.current_round = 0
         self.scores: Dict[int, int] = {}
         self.current_riddle: Optional[dict] = None
