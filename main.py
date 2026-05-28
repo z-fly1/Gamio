@@ -56,6 +56,7 @@ from guess_the_song import GuessTheSongGame
 from song_from_lyrics import SongFromLyricsGame
 from riddles_game import RiddlesGame
 from crazy_eight import Crazy8Game
+from jeopardy import JeopardyGame
 from guess_the_book import GuessTheBookGame
 from guess_the_marvel import GuessMarvelGame
 from guess_addis import GuessAddisGame
@@ -409,7 +410,7 @@ GAME_CATEGORIES = {
     "Trivia & Knowledge": {
         "games": [
             ("9", "General Knowledge"), ("13", "Taylor Swift Or Shakespeare"),
-            ("7", "Guess the Flag"), ("27", "Riddles")
+            ("7", "Guess the Flag"), ("27", "Riddles"), ("28", "Jeopardy")
         ]
     },
     "Music & Media": {
@@ -449,7 +450,8 @@ GAMES_METADATA = {
     "23": ("Movie Scene", "2"),
     "25": ("Who Am I", "2"),
     "26": ("Song From Lyrics", "2"),
-    "27": ("Riddles", "2")
+    "27": ("Riddles", "2"),
+    "28": ("Jeopardy", "1")
 }
 
 # Game Cover Images
@@ -477,7 +479,8 @@ GAME_COVERS = {
     "23": "Movie Scene.png",
     "25": "Who Am I.png",
     "26": "Guess the Song.png",
-    "27": "Riddles.png"
+    "27": "Riddles.png",
+    "28": "Jeopardy.png"
 }
 
 
@@ -919,6 +922,11 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
             used_images = settings_manager.get_setting(chat_id, "seen_movie_scenes", [])
         elif game_code == "27":
             used_images = settings_manager.get_setting(chat_id, "seen_riddles", [])
+        elif game_code == "28":
+            used_images = {
+                "seen_categories": settings_manager.get_setting(chat_id, "seen_jeopardy_categories", []),
+                "seen_clues": settings_manager.get_setting(chat_id, "seen_jeopardy_clues", [])
+            }
             
         if session.set_game_code(game_code, used_images=used_images):
             # Define game names and min players
@@ -946,6 +954,7 @@ async def handle_game_menu_callback(update: Update, context: ContextTypes.DEFAUL
                 "23": ("Movie Scene", "2"),
                 "26": ("Song From Lyrics", "2"),
                 "27": ("Riddles", "2"),
+                "28": ("Jeopardy", "1"),
             }
             
             game_name, min_players = game_info.get(game_code, ("General Knowledge", "2"))
@@ -1426,8 +1435,183 @@ async def start_game_after_delay(chat_id: int, context: ContextTypes.DEFAULT_TYP
         elif session.game_code == "27":
             # Riddles
             await start_riddle_round(chat_id, context)
+        elif session.game_code == "28":
+            # Jeopardy
+            await start_jeopardy_game(chat_id, context, session)
 
 
+
+
+async def start_jeopardy_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session: GameSession) -> None:
+    """Start the Jeopardy game."""
+    if not session.game.start_game():
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text="❌ Could not start game. Not enough players.",
+            parse_mode="HTML"
+        )
+        session.end_game()
+        game_manager.remove_game(chat_id)
+        return
+    
+    # Initialize session fields
+    session.jeopardy_active_clue = None
+    session.jeopardy_active_category = None
+    session.jeopardy_active_points = None
+    session.jeopardy_buzz_queue = []
+    session.jeopardy_buzzed_user = None
+    session.jeopardy_buzzed_names_attempted = set()
+    session.jeopardy_question_message_id = None
+    session.jeopardy_overall_timer_task = None
+    session.jeopardy_buzz_timer_task = None
+
+    await send_jeopardy_board(chat_id, context, session)
+
+async def send_jeopardy_board(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session: GameSession) -> None:
+    """Generate and send the Jeopardy clue board."""
+    # Persist progress
+    settings_manager.set_setting(chat_id, "seen_jeopardy_categories", session.game.used_categories)
+    settings_manager.set_setting(chat_id, "seen_jeopardy_clues", session.game.used_clues)
+    
+    # Render board
+    img_bytes = session.game.get_board_image()
+    if not img_bytes:
+        await context.bot.send_message(chat_id=chat_id, text="❌ Error generating board.")
+        return
+        
+    active_player_id = session.game.get_current_turn_player()
+    active_player_name = session.game.players.get(active_player_id, "Player")
+    active_mention = f'<a href="tg://user?id={active_player_id}">{active_player_name}</a>'
+    
+    caption = (
+        f"🔔 <b>Jeopardy Clue Board</b>\n\n"
+        f"It is {active_mention}'s turn to choose a category and points!\n"
+        f"Send your choice in this chat like: <code>Geography for 5</code>"
+    )
+    
+    # Send photo
+    await context.bot.send_photo(
+        chat_id=chat_id,
+        photo=img_bytes,
+        caption=caption,
+        parse_mode="HTML"
+    )
+
+async def jeopardy_player_response_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_id: int, session: GameSession) -> None:
+    """Timer that runs for 15 seconds when a player buzzes in."""
+    await asyncio.sleep(15)
+    
+    # If the user is still the active buzzer, they timed out
+    if session.jeopardy_active_clue and session.jeopardy_buzzed_user == user_id:
+        display_name = session.game.players.get(user_id, "Player")
+        
+        # Lock them out
+        session.jeopardy_buzzed_names_attempted.add(user_id)
+        session.jeopardy_buzzed_user = None
+        
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"⏰ <b>Time's up, <a href=\"tg://user?id={user_id}\">{display_name}</a>!</b>\n"
+                 f"You did not answer within 15 seconds and are locked out of this question.",
+            parse_mode="HTML"
+        )
+        
+        await check_jeopardy_buzz_queue(chat_id, context, session)
+
+async def check_jeopardy_buzz_queue(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session: GameSession) -> None:
+    """Find the next eligible player in the buzz-in queue, or re-enable the bell."""
+    next_user_id = None
+    while session.jeopardy_buzz_queue:
+        candidate = session.jeopardy_buzz_queue.pop(0)
+        if candidate not in session.jeopardy_buzzed_names_attempted and candidate in session.game.players:
+            next_user_id = candidate
+            break
+            
+    if next_user_id:
+        # Assign buzz to them
+        session.jeopardy_buzzed_user = next_user_id
+        next_name = session.game.players.get(next_user_id, "Player")
+        
+        try:
+            keyboard = [[InlineKeyboardButton("🔔 Buzz In!", callback_data="jeopardy_buzz")]]
+            await context.bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=session.jeopardy_question_message_id,
+                text=f"❓ <b>Jeopardy Clue ({session.jeopardy_active_category} for {session.jeopardy_active_points})</b>\n\n"
+                     f"<blockquote>{session.jeopardy_active_clue['clue']}</blockquote>\n\n"
+                     f"🔔 <b><a href=\"tg://user?id={next_user_id}\">{next_name}</a> buzzed in from the queue!</b>\n"
+                     f"👉 <i>You have 15 seconds to answer! Remember, your answer must end with a question mark (?)!</i>",
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode="HTML"
+            )
+        except Exception:
+            pass
+            
+        session.jeopardy_buzz_timer_task = asyncio.create_task(
+            jeopardy_player_response_timeout(chat_id, context, next_user_id, session)
+        )
+        track_game_task(chat_id, session.jeopardy_buzz_timer_task)
+    else:
+        # Queue is empty, check if all players are locked out
+        all_players = set(session.game.players.keys())
+        if all_players.issubset(session.jeopardy_buzzed_names_attempted):
+            await resolve_unanswered_jeopardy_clue(chat_id, context, session)
+        else:
+            # Re-enable button
+            try:
+                keyboard = [[InlineKeyboardButton("🔔 Buzz In!", callback_data="jeopardy_buzz")]]
+                await context.bot.edit_message_text(
+                    chat_id=chat_id,
+                    message_id=session.jeopardy_question_message_id,
+                    text=f"❓ <b>Jeopardy Clue ({session.jeopardy_active_category} for {session.jeopardy_active_points})</b>\n\n"
+                         f"<blockquote>{session.jeopardy_active_clue['clue']}</blockquote>\n\n"
+                         f"👉 <i>Click the 🔔 button below to buzz in and answer!</i>",
+                    reply_markup=InlineKeyboardMarkup(keyboard),
+                    parse_mode="HTML"
+                )
+            except Exception:
+                pass
+                
+            session.jeopardy_overall_timer_task = asyncio.create_task(
+                jeopardy_clue_overall_timeout(chat_id, context, session)
+            )
+            track_game_task(chat_id, session.jeopardy_overall_timer_task)
+
+async def jeopardy_clue_overall_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session: GameSession) -> None:
+    """Timer that runs for 30 seconds if no one buzzes in."""
+    await asyncio.sleep(30)
+    
+    if session.jeopardy_active_clue and not session.jeopardy_buzzed_user:
+        await resolve_unanswered_jeopardy_clue(chat_id, context, session)
+
+async def resolve_unanswered_jeopardy_clue(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session: GameSession) -> None:
+    """Resolve a question that timed out or that everyone got wrong."""
+    if not session.jeopardy_active_clue:
+        return
+        
+    expected_answer = session.jeopardy_active_clue["answer"]
+    
+    # Cancel tasks
+    if session.jeopardy_overall_timer_task:
+        session.jeopardy_overall_timer_task.cancel()
+    if session.jeopardy_buzz_timer_task:
+        session.jeopardy_buzz_timer_task.cancel()
+        
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=f"⏱ <b>Time's up! No one answered correctly.</b>\n\n"
+             f"The correct answer was: <b>{expected_answer}</b>",
+        parse_mode="HTML"
+    )
+    
+    session.game.resolve_unanswered_clue()
+    
+    await asyncio.sleep(3)
+    
+    if session.game.is_game_over():
+        await end_game(chat_id, context, session)
+    else:
+        await send_jeopardy_board(chat_id, context, session)
 
 
 async def start_who_am_i_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session) -> None:
@@ -2199,6 +2383,137 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 )
                 session.game.next_turn()
                 await play_who_am_i_turn(chat.id, context, session)
+
+        # Handle Jeopardy Game
+        elif session.game_code == "28":
+            text = message.text.strip()
+            
+            # Phase A: Answering the Question
+            if session.jeopardy_active_clue is not None:
+                # Only the buzzed-in user can answer!
+                if session.jeopardy_buzzed_user == user.id:
+                    # The answer MUST end with a question mark (?)
+                    if not text.endswith('?'):
+                        await message.reply_text("⚠️ Answers must end with a question mark (?)! Please try again.")
+                        return
+                        
+                    # Process the answer
+                    display_name = user.first_name or user.username or "Player"
+                    expected_answer = session.jeopardy_active_clue["answer"]
+                    points = session.jeopardy_active_points
+                    
+                    if session.game.check_answer(text, user.id):
+                        # Correct answer!
+                        # Cancel active timers
+                        if session.jeopardy_overall_timer_task:
+                            session.jeopardy_overall_timer_task.cancel()
+                        if session.jeopardy_buzz_timer_task:
+                            session.jeopardy_buzz_timer_task.cancel()
+                            
+                        try:
+                            await message.set_reaction(reaction=ReactionTypeEmoji(emoji="🎉"))
+                        except Exception:
+                            pass
+                            
+                        new_score = session.game.scores.get(user.id, 0)
+                        await message.reply_text(
+                            f"🎉 <b>Correct, <a href=\"tg://user?id={user.id}\">{display_name}</a>!</b>\n\n"
+                            f"Answer: <b>{expected_answer}</b>\n"
+                            f"You got <b>{points}</b> points!\n"
+                            f"Your total score: <b>{new_score}</b> point(s).",
+                            parse_mode="HTML"
+                        )
+                        
+                        # Reset jeopardy question state
+                        session.jeopardy_active_clue = None
+                        session.jeopardy_active_category = None
+                        session.jeopardy_active_points = None
+                        
+                        await asyncio.sleep(3)
+                        
+                        if session.game.is_game_over():
+                            await end_game(chat.id, context, session)
+                        else:
+                            await send_jeopardy_board(chat.id, context, session)
+                    else:
+                        # Incorrect answer!
+                        # Lock them out
+                        session.jeopardy_buzzed_names_attempted.add(user.id)
+                        session.jeopardy_buzzed_user = None
+                        
+                        # Cancel active buzz timer
+                        if session.jeopardy_buzz_timer_task:
+                            session.jeopardy_buzz_timer_task.cancel()
+                            
+                        try:
+                            await message.set_reaction(reaction=ReactionTypeEmoji(emoji="😢"))
+                        except Exception:
+                            pass
+                            
+                        await message.reply_text(
+                            f"❌ <b>Incorrect, <a href=\"tg://user?id={user.id}\">{display_name}</a>!</b>\n"
+                            f"You are locked out of this question.",
+                            parse_mode="HTML"
+                        )
+                        
+                        # Process next in buzz queue or re-enable
+                        await check_jeopardy_buzz_queue(chat.id, context, session)
+                else:
+                    # Not the buzzed-in user. If they are in the game, tell them they need to buzz in first
+                    if user.id in session.game.players:
+                        # Only reply if it looks like they're trying to answer
+                        if text.endswith('?'):
+                            await message.reply_text("⚠️ You must click the 🔔 Buzz In button before you can answer!")
+                return
+
+            # Phase B: Selecting a Clue
+            else:
+                # Check if it matches "{Category} for {Points}"
+                match = re.match(r'^(.+)\s+for\s+(\d+)$', text, re.IGNORECASE)
+                if match:
+                    # Check if it is this player's turn to choose
+                    active_chooser = session.game.get_current_turn_player()
+                    if user.id != active_chooser:
+                        if user.id in session.game.players:
+                            await message.reply_text("⚠️ It is not your turn to choose a category!")
+                        return
+                        
+                    category_query = match.group(1).strip()
+                    points = int(match.group(2))
+                    
+                    clue_data = session.game.select_clue(user.id, category_query, points)
+                    if clue_data:
+                        # Valid selection!
+                        session.jeopardy_active_clue = clue_data
+                        session.jeopardy_active_category = session.game.current_selected_category
+                        session.jeopardy_active_points = points
+                        session.jeopardy_buzz_queue = []
+                        session.jeopardy_buzzed_user = None
+                        session.jeopardy_buzzed_names_attempted = set()
+                        
+                        # Send the clue
+                        keyboard = [[InlineKeyboardButton("🔔 Buzz In!", callback_data="jeopardy_buzz")]]
+                        msg = await message.reply_text(
+                            f"❓ <b>Jeopardy Clue ({session.jeopardy_active_category} for {points})</b>\n\n"
+                            f"<blockquote>{clue_data['clue']}</blockquote>\n\n"
+                            f"👉 <i>Click the 🔔 button below to buzz in and answer!</i>",
+                            reply_markup=InlineKeyboardMarkup(keyboard),
+                            parse_mode="HTML"
+                        )
+                        session.jeopardy_question_message_id = msg.message_id
+                        
+                        # Start overall timeout timer for this question
+                        session.jeopardy_overall_timer_task = asyncio.create_task(
+                            jeopardy_clue_overall_timeout(chat.id, context, session)
+                        )
+                        track_game_task(chat.id, session.jeopardy_overall_timer_task)
+                    else:
+                        # Invalid selection
+                        await message.reply_text(
+                            "⚠️ <b>Invalid selection!</b>\n"
+                            "Please choose an unanswered category and valid points from the board (e.g., <code>Geography for 5</code>).",
+                            parse_mode="HTML"
+                        )
 
         # Handle Riddles Game
         elif session.game_code == "27":
@@ -4712,6 +5027,66 @@ async def handle_ts_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.warning(f"Failed to answer TS callback query: {e}")
 
 
+async def handle_jeopardy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle buzz-in button clicks for Jeopardy."""
+    query = update.callback_query
+    user = query.from_user
+    chat = update.effective_chat
+    
+    session = game_manager.get_game(chat.id)
+    if not session or session.game_code != "28" or not session.jeopardy_active_clue:
+        await query.answer("Game or clue not active.")
+        return
+        
+    if user.id not in session.game.players:
+        await query.answer("⚠️ You must join the game using /join to buzz in!", show_alert=True)
+        return
+        
+    if user.id in session.jeopardy_buzzed_names_attempted:
+        await query.answer("⚠️ You already attempted this question!", show_alert=True)
+        return
+        
+    if session.jeopardy_buzzed_user is not None:
+        # Someone is already active. Queue this user
+        if user.id in session.jeopardy_buzz_queue:
+            await query.answer("You are already in the buzz-in queue!")
+        else:
+            session.jeopardy_buzz_queue.append(user.id)
+            pos = len(session.jeopardy_buzz_queue)
+            await query.answer(f"Added to buzz-in queue! Position: {pos}")
+        return
+        
+    # No one is active, buzz in this user
+    session.jeopardy_buzzed_user = user.id
+    await query.answer("🔔 BZZZ! You buzzed in! 15s to answer.")
+    
+    # Cancel overall timer
+    if session.jeopardy_overall_timer_task:
+        session.jeopardy_overall_timer_task.cancel()
+        
+    # Update question message text to reflect active buzzer
+    try:
+        keyboard = [[InlineKeyboardButton("🔔 Buzz In!", callback_data="jeopardy_buzz")]]
+        await context.bot.edit_message_text(
+            chat_id=chat.id,
+            message_id=session.jeopardy_question_message_id,
+            text=f"❓ <b>Jeopardy Clue ({session.jeopardy_active_category} for {session.jeopardy_active_points})</b>\n\n"
+                 f"<blockquote>{session.jeopardy_active_clue['clue']}</blockquote>\n\n"
+                 f"🔔 <b><a href=\"tg://user?id={user.id}\">{user.first_name}</a> buzzed in!</b>\n"
+                 f"👉 <i>You have 15 seconds to answer! Remember, your answer must end with a question mark (?)!</i>",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        logger.error(f"Failed to update question message: {e}")
+        
+    # Start 15s timer task
+    session.jeopardy_buzz_timer_task = asyncio.create_task(
+        jeopardy_player_response_timeout(chat.id, context, user.id, session)
+    )
+    track_game_task(chat.id, session.jeopardy_buzz_timer_task)
+
+
 async def start_song_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session) -> None:
     """Start the Guess the Song game."""
     await start_song_round(chat_id, context)
@@ -5523,6 +5898,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(handle_leaderboard_callback, pattern="^lb_"))
     application.add_handler(CallbackQueryHandler(handle_vote_callback, pattern="^vote_"))
     application.add_handler(CallbackQueryHandler(handle_ts_callback, pattern="^ts_vote_"))
+    application.add_handler(CallbackQueryHandler(handle_jeopardy_callback, pattern="^jeopardy_"))
     application.add_handler(CallbackQueryHandler(handle_20q_callback, pattern="^view_secret_word$"))
     application.add_handler(CallbackQueryHandler(handle_c8_callback, pattern="^c8_"))
     application.add_handler(CallbackQueryHandler(handle_sfl_callback, pattern="^sfl_reveal$"))

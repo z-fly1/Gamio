@@ -29,6 +29,8 @@ from movie_scene import MovieSceneGame
 from who_am_i import WhoAmIGame
 from song_from_lyrics import SongFromLyricsGame
 from riddles_game import RiddlesGame
+from jeopardy import JeopardyGame
+
 
 
 
@@ -53,7 +55,7 @@ class GameSession:
         self.state = GameState.WAITING_FOR_GAME_CODE
         self.game_code: Optional[str] = None
         self.players: Set[int] = set()  # Set of user IDs
-        self.game: Optional[Union[WordUnscrambleGame, StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessMojiGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame, RiddlesGame]] = None
+        self.game: Optional[Union[WordUnscrambleGame, StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessMojiGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame, RiddlesGame, JeopardyGame]] = None
 
         self.joining_deadline: Optional[datetime] = None
         
@@ -191,9 +193,14 @@ class GameSession:
             self.state = GameState.JOINING
             return True
 
-        elif code == "27":
+        elif code == "28":
             self.game_code = code
-            self.game = RiddlesGame(total_rounds=10, used_riddles=used_images)
+            used_cats = None
+            used_cls = None
+            if isinstance(used_images, dict):
+                used_cats = used_images.get("seen_categories")
+                used_cls = used_images.get("seen_clues")
+            self.game = JeopardyGame(used_categories=used_cats, used_clues=used_cls)
             self.state = GameState.JOINING
             return True
 
@@ -215,7 +222,7 @@ class GameSession:
         self.players.add(user_id)
         if self.game:
             # Handle different game signatures
-            if isinstance(self.game, (StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame)):
+            if isinstance(self.game, (StoryBuilderGame, GuessTheImposterGame, GuessTheLogoGame, GuessTheMovieGame, GuessTheFlagGame, GeneralKnowledgeGame, GuessCharacterGame, WordConnectGame, MemeGame, TaylorShakespeareGame, TwentyQuestionsGame, GuessTheSongGame, Crazy8Game, GuessTheBookGame, GuessMarvelGame, GuessAddisGame, HearMeOutGame, NameThePlayerGame, MovieSceneGame, WhoAmIGame, SongFromLyricsGame, JeopardyGame)):
 
                 display_name = username or "Player"
                 self.game.add_player(user_id, display_name)
