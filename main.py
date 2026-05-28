@@ -9,6 +9,7 @@ import json
 import logging
 import asyncio
 import random
+import re
 import threading
 import html
 from typing import Optional, Dict, List, Tuple, Union
