@@ -1013,7 +1013,8 @@ def get_game_instructions(game_code: str) -> str:
         "1": "<blockquote expandable><b>How to Play:</b>\n‣ Rearrange the letters to form a correct word.\n‣ Type your answer and send it in the chat.\n‣ Each correct answer earns you points.\n‣ The player with the highest score wins.</blockquote>",
         "25": "<blockquote expandable><b>How to Play:</b>\n‣ Everyone gets a celebrity assigned to them.\n‣ On your turn, others see who you are, but you don't.\n‣ Ask questions in the group to guess your celebrity.\n‣ Once you know, type the name in the chat.\n‣ Shortest time to guess wins!</blockquote>",
         "26": "<blockquote expandable><b>How to Play:</b>\n‣ Guess the Song Title and Artist from the provided lyrics.\n‣ Use the '▶Next Line' button to reveal more lines if needed.\n‣ Each correct part (Title or Artist) earns you 2 points.\n‣ Guess both to complete the round!</blockquote>",
-        "27": "<blockquote expandable><b>How to Play:</b>\n‣ Read the riddle and type your answer in the chat.\n‣ Each correct answer earns you 1 point.\n‣ First to answer gets the point!\n‣ Player with the most points wins!</blockquote>"
+        "27": "<blockquote expandable><b>How to Play:</b>\n‣ Read the riddle and type your answer in the chat.\n‣ Each correct answer earns you 1 point.\n‣ First to answer gets the point!\n‣ Player with the most points wins!</blockquote>",
+        "28": "<blockquote expandable><b>How to Play:</b>\n‣ A turn is assigned to a player to select a category and points (e.g. Geography for 5).\n‣ A question is sent, and players must click the 🔔 inline button to buzz in.\n‣ The first to buzz in gets 15 seconds to type their answer.\n‣ Answers must end with a question mark (?).\n‣ Correct answers earn points, incorrect answers lock you out from buzzing again.</blockquote>"
     }
     return instructions.get(game_code, "")
 
@@ -1354,6 +1355,14 @@ async def start_game_after_delay(chat_id: int, context: ContextTypes.DEFAULT_TYP
                 f"\n\n<blockquote><b>Mode:</b>\n"
                 f"Rounds: {rounds}</blockquote>"
             )
+        elif session.game_code == "28":
+            session.game.start_game()
+            turn_order_names = [session.game.players.get(pid, "Unknown") for pid in session.game.turn_order]
+            turn_order_str = " ➔ ".join(turn_order_names)
+            mode_text = (
+                f"\n\n<blockquote><b>Turn Order:</b>\n"
+                f"{turn_order_str}</blockquote>"
+            )
 
         await context.bot.send_message(
             chat_id=chat_id,
@@ -1485,9 +1494,10 @@ async def send_jeopardy_board(chat_id: int, context: ContextTypes.DEFAULT_TYPE, 
     active_mention = f'<a href="tg://user?id={active_player_id}">{active_player_name}</a>'
     
     caption = (
-        f"🔔 <b>Jeopardy Clue Board</b>\n\n"
-        f"It is {active_mention}'s turn to choose a category and points!\n"
-        f"Send your choice in this chat like: <code>Geography for 5</code>"
+        f"<b>Jeopardy Board</b>\n\n"
+        f"🔅 It is {active_mention}'s turn \n"
+        f"<blockquote>to choose a category and points!\n"
+        f"Send your choice in this chat like: <code>Geography for 5</code></blockquote>"
     )
     
     # Send photo
@@ -2395,7 +2405,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 if session.jeopardy_buzzed_user == user.id:
                     # The answer MUST end with a question mark (?)
                     if not text.endswith('?'):
-                        await message.reply_text("⚠️ Answers must end with a question mark (?)! Please try again.")
+                        await message.reply_text("❗️Answers must end with a question mark (?) and they must be written in question form! Please try again.")
                         return
                         
                     # Process the answer

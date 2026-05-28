@@ -101,8 +101,12 @@ class JeopardyGame:
         """Initialize the turn order."""
         if not self.players:
             return False
-        random.shuffle(self.turn_order)
-        self.current_turn_index = 0
+        # Only initialize if turn_order is not set or empty
+        if not getattr(self, '_started', False):
+            self.turn_order = list(self.players.keys())
+            random.shuffle(self.turn_order)
+            self.current_turn_index = 0
+            self._started = True
         return True
 
     def get_current_turn_player(self) -> Optional[int]:
@@ -118,10 +122,18 @@ class JeopardyGame:
         
         # Match category name loosely
         matched_category = None
+        # Try exact match first
         for cat in self.categories:
             if cat.lower().strip() == category_query.lower().strip():
                 matched_category = cat
                 break
+                
+        # Try substring match if no exact match
+        if not matched_category:
+            for cat in self.categories:
+                if category_query.lower().strip() in cat.lower():
+                    matched_category = cat
+                    break
         
         if not matched_category:
             return None
