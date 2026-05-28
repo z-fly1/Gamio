@@ -1550,8 +1550,7 @@ async def check_jeopardy_buzz_queue(chat_id: int, context: ContextTypes.DEFAULT_
                 message_id=session.jeopardy_question_message_id,
                 text=f"❓ <b>Jeopardy Clue ({session.jeopardy_active_category} for {session.jeopardy_active_points})</b>\n\n"
                      f"<blockquote>{session.jeopardy_active_clue['clue']}</blockquote>\n\n"
-                     f"🔔 <b><a href=\"tg://user?id={next_user_id}\">{next_name}</a> buzzed in from the queue!</b>\n"
-                     f"👉 <i>You have 15 seconds to answer! Remember, your answer must end with a question mark (?)!</i>",
+                     f"🔔 <b><a href=\"tg://user?id={next_user_id}\">{next_name}</a> buzzed in from the queue!</b>",
                 reply_markup=InlineKeyboardMarkup(keyboard),
                 parse_mode="HTML"
             )
@@ -5083,8 +5082,7 @@ async def handle_jeopardy_callback(update: Update, context: ContextTypes.DEFAULT
             message_id=session.jeopardy_question_message_id,
             text=f"❓ <b>Jeopardy Clue ({session.jeopardy_active_category} for {session.jeopardy_active_points})</b>\n\n"
                  f"<blockquote>{session.jeopardy_active_clue['clue']}</blockquote>\n\n"
-                 f"🔔 <b><a href=\"tg://user?id={user.id}\">{user.first_name}</a> buzzed in!</b>\n"
-                 f"👉 <i>You have 15 seconds to answer! Remember, your answer must end with a question mark (?)!</i>",
+                 f"🔔 <b><a href=\"tg://user?id={user.id}\">{user.first_name}</a> buzzed in!</b>",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode="HTML"
         )
