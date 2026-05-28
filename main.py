@@ -1478,16 +1478,13 @@ async def start_jeopardy_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, 
     await send_jeopardy_board(chat_id, context, session)
 
 async def send_jeopardy_board(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session: GameSession) -> None:
-    """Generate and send the Jeopardy clue board."""
+    """Generate and send the Jeopardy clue board with retry logic and text-based fallback."""
     # Persist progress
-    settings_manager.set_setting(chat_id, "seen_jeopardy_categories", session.game.used_categories)
-    settings_manager.set_setting(chat_id, "seen_jeopardy_clues", session.game.used_clues)
-    
-    # Render board
-    img_bytes = session.game.get_board_image()
-    if not img_bytes:
-        await context.bot.send_message(chat_id=chat_id, text="❌ Error generating board.")
-        return
+    try:
+        settings_manager.set_setting(chat_id, "seen_jeopardy_categories", session.game.used_categories)
+        settings_manager.set_setting(chat_id, "seen_jeopardy_clues", session.game.used_clues)
+    except Exception as e:
+        logger.error(f"Error persisting settings: {e}")
         
     active_player_id = session.game.get_current_turn_player()
     active_player_name = session.game.players.get(active_player_id, "Player")
@@ -1500,13 +1497,64 @@ async def send_jeopardy_board(chat_id: int, context: ContextTypes.DEFAULT_TYPE, 
         f"Send your choice in this chat like: <code>Geography for 5</code></blockquote>"
     )
     
-    # Send photo
-    await context.bot.send_photo(
-        chat_id=chat_id,
-        photo=img_bytes,
-        caption=caption,
-        parse_mode="HTML"
+    # Generate board image
+    img_bytes = None
+    try:
+        img_bytes = session.game.get_board_image()
+    except Exception as e:
+        logger.error(f"Error generating board image: {e}")
+
+    # Retry loop for sending the photo
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        try:
+            if img_bytes:
+                img_bytes.seek(0)
+                await context.bot.send_photo(
+                    chat_id=chat_id,
+                    photo=img_bytes,
+                    caption=caption,
+                    parse_mode="HTML"
+                )
+                return  # Success!
+            else:
+                raise ValueError("Board image bytes are empty/None")
+        except Exception as e:
+            logger.error(f"Attempt {attempt} to send Jeopardy board photo failed: {e}")
+            if attempt < max_retries:
+                await asyncio.sleep(1.5)  # Wait before retry
+                
+    # If all attempts to send photo failed (or image was None), fallback to text-based board
+    logger.warning("All attempts to send board photo failed or image not available. Falling back to text board.")
+    
+    # Build text board representation
+    text_board = "🔔 <b>Jeopardy Board Status</b>\n\n"
+    for cat in session.game.categories:
+        available_pts = []
+        for pts in [2, 5, 10, 15]:
+            if (cat, pts) not in session.game.answered_cells:
+                available_pts.append(str(pts))
+        pts_str = ", ".join(available_pts) if available_pts else "❌ Fully Answered"
+        text_board += f"• <b>{cat}</b>: {pts_str}\n"
+    
+    text_board += (
+        f"\n🔅 It is {active_mention}'s turn to choose category & points!\n"
+        f"Send choice like: <code>Geography for 5</code>"
     )
+    
+    # Try sending text board
+    for text_attempt in range(1, max_retries + 1):
+        try:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=text_board,
+                parse_mode="HTML"
+            )
+            return  # Success!
+        except Exception as te:
+            logger.error(f"Failed to send text fallback board (attempt {text_attempt}): {te}")
+            if text_attempt < max_retries:
+                await asyncio.sleep(1.5)
 
 async def jeopardy_player_response_timeout(chat_id: int, context: ContextTypes.DEFAULT_TYPE, user_id: int, session: GameSession) -> None:
     """Timer that runs for 15 seconds when a player buzzes in."""
@@ -1603,25 +1651,49 @@ async def resolve_unanswered_jeopardy_clue(chat_id: int, context: ContextTypes.D
     
     # Cancel tasks
     if session.jeopardy_overall_timer_task:
-        session.jeopardy_overall_timer_task.cancel()
+        try:
+            session.jeopardy_overall_timer_task.cancel()
+        except Exception:
+            pass
     if session.jeopardy_buzz_timer_task:
-        session.jeopardy_buzz_timer_task.cancel()
+        try:
+            session.jeopardy_buzz_timer_task.cancel()
+        except Exception:
+            pass
         
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=f"⏱ <b>Time's up! No one answered correctly.</b>\n\n"
-             f"The correct answer was: <b>{expected_answer}</b>",
-        parse_mode="HTML"
-    )
+    try:
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"⏱ <b>Time's up! No one answered correctly.</b>\n\n"
+                 f"The correct answer was: <b>{expected_answer}</b>",
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        logger.error(f"Failed to send unanswered clue timeout message: {e}")
     
-    session.game.resolve_unanswered_clue()
+    # Resolve game engine state
+    try:
+        session.game.resolve_unanswered_clue()
+    except Exception as e:
+        logger.error(f"Error in game engine resolve_unanswered_clue: {e}")
+        
+    # Reset session question state (Crucial to return to Phase B Selection Phase!)
+    session.jeopardy_active_clue = None
+    session.jeopardy_active_category = None
+    session.jeopardy_active_points = None
+    session.jeopardy_buzzed_user = None
+    session.jeopardy_buzz_queue = []
+    session.jeopardy_buzzed_names_attempted = set()
     
     await asyncio.sleep(3)
     
-    if session.game.is_game_over():
-        await end_game(chat_id, context, session)
-    else:
-        await send_jeopardy_board(chat_id, context, session)
+    try:
+        if session.game.is_game_over():
+            await end_game(chat_id, context, session)
+        else:
+            await send_jeopardy_board(chat_id, context, session)
+    except Exception as e:
+        logger.error(f"Failed to progress after unanswered clue: {e}")
 
 
 async def start_who_am_i_game(chat_id: int, context: ContextTypes.DEFAULT_TYPE, session) -> None:
@@ -2404,7 +2476,10 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 if session.jeopardy_buzzed_user == user.id:
                     # The answer MUST end with a question mark (?)
                     if not text.endswith('?'):
-                        await message.reply_text("❗️Answers must end with a question mark (?) and they must be written in question form! Please try again.")
+                        try:
+                            await message.reply_text("❗️Answers must end with a question mark (?) and they must be written in question form! Please try again.")
+                        except Exception:
+                            pass
                         return
                         
                     # Process the answer
@@ -2416,9 +2491,15 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                         # Correct answer!
                         # Cancel active timers
                         if session.jeopardy_overall_timer_task:
-                            session.jeopardy_overall_timer_task.cancel()
+                            try:
+                                session.jeopardy_overall_timer_task.cancel()
+                            except Exception:
+                                pass
                         if session.jeopardy_buzz_timer_task:
-                            session.jeopardy_buzz_timer_task.cancel()
+                            try:
+                                session.jeopardy_buzz_timer_task.cancel()
+                            except Exception:
+                                pass
                             
                         try:
                             await message.set_reaction(reaction=ReactionTypeEmoji(emoji="🎉"))
@@ -2426,25 +2507,34 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                             pass
                             
                         new_score = session.game.scores.get(user.id, 0)
-                        await message.reply_text(
-                            f"🎉 <b>Correct, <a href=\"tg://user?id={user.id}\">{display_name}</a>!</b>\n\n"
-                            f"Answer: <b>{expected_answer}</b>\n"
-                            f"You got <b>{points}</b> points!\n"
-                            f"Your total score: <b>{new_score}</b> point(s).",
-                            parse_mode="HTML"
-                        )
+                        try:
+                            await message.reply_text(
+                                f"🎉 <b>Correct, <a href=\"tg://user?id={user.id}\">{display_name}</a>!</b>\n\n"
+                                f"Answer: <b>{expected_answer}</b>\n"
+                                f"You got <b>{points}</b> points!\n"
+                                f"Your total score: <b>{new_score}</b> point(s).",
+                                parse_mode="HTML"
+                            )
+                        except Exception as e:
+                            logger.error(f"Failed to send correct answer message: {e}")
                         
                         # Reset jeopardy question state
                         session.jeopardy_active_clue = None
                         session.jeopardy_active_category = None
                         session.jeopardy_active_points = None
+                        session.jeopardy_buzzed_user = None
+                        session.jeopardy_buzz_queue = []
+                        session.jeopardy_buzzed_names_attempted = set()
                         
                         await asyncio.sleep(3)
                         
-                        if session.game.is_game_over():
-                            await end_game(chat.id, context, session)
-                        else:
-                            await send_jeopardy_board(chat.id, context, session)
+                        try:
+                            if session.game.is_game_over():
+                                await end_game(chat.id, context, session)
+                            else:
+                                await send_jeopardy_board(chat.id, context, session)
+                        except Exception as e:
+                            logger.error(f"Failed to progress after correct answer: {e}")
                     else:
                         # Incorrect answer!
                         # Lock them out
@@ -2453,27 +2543,39 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                         
                         # Cancel active buzz timer
                         if session.jeopardy_buzz_timer_task:
-                            session.jeopardy_buzz_timer_task.cancel()
+                            try:
+                                session.jeopardy_buzz_timer_task.cancel()
+                            except Exception:
+                                pass
                             
                         try:
                             await message.set_reaction(reaction=ReactionTypeEmoji(emoji="😢"))
                         except Exception:
                             pass
                             
-                        await message.reply_text(
-                            f"❌ <b>Incorrect, <a href=\"tg://user?id={user.id}\">{display_name}</a>!</b>\n"
-                            f"You are locked out of this question.",
-                            parse_mode="HTML"
-                        )
+                        try:
+                            await message.reply_text(
+                                f"❌ <b>Incorrect, <a href=\"tg://user?id={user.id}\">{display_name}</a>!</b>\n"
+                                f"You are locked out of this question.",
+                                parse_mode="HTML"
+                            )
+                        except Exception as e:
+                            logger.error(f"Failed to send incorrect answer message: {e}")
                         
                         # Process next in buzz queue or re-enable
-                        await check_jeopardy_buzz_queue(chat.id, context, session)
+                        try:
+                            await check_jeopardy_buzz_queue(chat.id, context, session)
+                        except Exception as e:
+                            logger.error(f"Failed to process buzz queue: {e}")
                 else:
                     # Not the buzzed-in user. If they are in the game, tell them they need to buzz in first
                     if user.id in session.game.players:
                         # Only reply if it looks like they're trying to answer
                         if text.endswith('?'):
-                            await message.reply_text("⚠️ You must click the 🔔 Buzz In button before you can answer!")
+                            try:
+                                await message.reply_text("⚠️ You must click the 🔔 Buzz In button before you can answer!")
+                            except Exception:
+                                pass
                 return
 
             # Phase B: Selecting a Clue

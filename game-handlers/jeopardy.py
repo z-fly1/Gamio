@@ -223,66 +223,69 @@ class JeopardyGame:
         return [uid for uid, s in scoreboard if s == highest]
 
     def get_board_image(self) -> Optional[io.BytesIO]:
-        """Generate the dynamic clue board PNG using Pillow."""
-        img_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "jeopardy", "clue-card-template.png")
-        font_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "jeopardy", "impact.ttf")
-        
+        """Generate the dynamic clue board PNG using Pillow with robust error handling."""
         try:
-            img = Image.open(img_path).convert("RGB")
+            img_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "jeopardy", "clue-card-template.png")
+            font_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "jeopardy", "impact.ttf")
+            
+            try:
+                img = Image.open(img_path).convert("RGB")
+            except Exception:
+                return None
+                
+            draw = ImageDraw.Draw(img)
+            
+            # Coordinates mapping for the 4 columns
+            coords = {
+                0: {
+                    "title": (160.0, 110.9, 576.0, 285.9),
+                    2: (155.7, 381.9, 576.0, 492.8),
+                    5: (155.7, 550.4, 571.7, 663.5),
+                    10: (155.7, 721.1, 576.0, 834.1),
+                    15: (155.7, 889.6, 573.9, 1002.7)
+                },
+                1: {
+                    "title": (761.6, 108.8, 1179.7, 285.9),
+                    2: (761.6, 381.9, 1179.7, 494.9),
+                    5: (759.5, 552.5, 1179.7, 663.5),
+                    10: (761.6, 718.9, 1177.6, 834.1),
+                    15: (761.6, 889.6, 1179.7, 1004.8)
+                },
+                2: {
+                    "title": (1365.3, 108.8, 1785.6, 283.7),
+                    2: (1365.3, 379.7, 1785.6, 492.8),
+                    5: (1365.3, 546.1, 1783.5, 663.5),
+                    10: (1365.3, 718.9, 1785.6, 834.1),
+                    15: (1365.3, 889.6, 1785.6, 1004.8)
+                },
+                3: {
+                    "title": (1984.0, 108.8, 2402.1, 281.6),
+                    2: (1984.0, 379.7, 2404.3, 494.9),
+                    5: (1984.0, 548.3, 2402.1, 663.5),
+                    10: (1984.0, 716.8, 2402.1, 834.1),
+                    15: (1984.0, 889.6, 2404.3, 1002.7)
+                }
+            }
+            
+            for col_idx, cat in enumerate(self.categories):
+                col_coords = coords[col_idx]
+                
+                # Draw Title
+                self._wrap_and_draw_title(draw, cat, col_coords["title"], font_path)
+                
+                # Draw Point values
+                for pts in [2, 5, 10, 15]:
+                    if (cat, pts) in self.answered_cells:
+                        # Hide already answered clues
+                        continue
+                    self._draw_centered_point(draw, str(pts), col_coords[pts], font_path)
+                    
+            output = io.BytesIO()
+            img.save(output, format="PNG")
+            output.seek(0)
+            return output
         except Exception:
             return None
-            
-        draw = ImageDraw.Draw(img)
-        
-        # Coordinates mapping for the 4 columns
-        coords = {
-            0: {
-                "title": (160.0, 110.9, 576.0, 285.9),
-                2: (155.7, 381.9, 576.0, 492.8),
-                5: (155.7, 550.4, 571.7, 663.5),
-                10: (155.7, 721.1, 576.0, 834.1),
-                15: (155.7, 889.6, 573.9, 1002.7)
-            },
-            1: {
-                "title": (761.6, 108.8, 1179.7, 285.9),
-                2: (761.6, 381.9, 1179.7, 494.9),
-                5: (759.5, 552.5, 1179.7, 663.5),
-                10: (761.6, 718.9, 1177.6, 834.1),
-                15: (761.6, 889.6, 1179.7, 1004.8)
-            },
-            2: {
-                "title": (1365.3, 108.8, 1785.6, 283.7),
-                2: (1365.3, 379.7, 1785.6, 492.8),
-                5: (1365.3, 546.1, 1783.5, 663.5),
-                10: (1365.3, 718.9, 1785.6, 834.1),
-                15: (1365.3, 889.6, 1785.6, 1004.8)
-            },
-            3: {
-                "title": (1984.0, 108.8, 2402.1, 281.6),
-                2: (1984.0, 379.7, 2404.3, 494.9),
-                5: (1984.0, 548.3, 2402.1, 663.5),
-                10: (1984.0, 716.8, 2402.1, 834.1),
-                15: (1984.0, 889.6, 2404.3, 1002.7)
-            }
-        }
-        
-        for col_idx, cat in enumerate(self.categories):
-            col_coords = coords[col_idx]
-            
-            # Draw Title
-            self._wrap_and_draw_title(draw, cat, col_coords["title"], font_path)
-            
-            # Draw Point values
-            for pts in [2, 5, 10, 15]:
-                if (cat, pts) in self.answered_cells:
-                    # Hide already answered clues
-                    continue
-                self._draw_centered_point(draw, str(pts), col_coords[pts], font_path)
-                
-        output = io.BytesIO()
-        img.save(output, format="PNG")
-        output.seek(0)
-        return output
 
     def _wrap_and_draw_title(self, draw, text: str, box: Tuple[float, float, float, float], font_path: str) -> None:
         x1, y1, x2, y2 = box
