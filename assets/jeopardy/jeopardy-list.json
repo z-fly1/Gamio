@@ -1,0 +1,324 @@
+{
+  "game_title": "The Ultimate Mega Trivia Bank",
+  "point_values": [2, 5, 10, 15, 20],
+  "categories": [
+    {
+      "category_name": "Geography",
+      "clues": [
+        { "points": 2, "clue": "This European capital city is home to the Eiffel Tower and the Louvre Museum.", "answer": "What is Paris?" },
+        { "points": 2, "clue": "This Asian metropolis is the most populous capital city in the world.", "answer": "What is Tokyo?" },
+        { "points": 5, "clue": "This South American river holds the record for the largest volume of water flow in the world.", "answer": "What is the Amazon River?" },
+        { "points": 5, "clue": "Spanning across Northern Africa, this is the largest hot desert on Earth.", "answer": "What is the Sahara Desert?" },
+        { "points": 10, "clue": "This narrow South American nation stretches over 4,000 kilometers along the Pacific coast but averages only 177 kilometers wide.", "answer": "What is Chile?" },
+        { "points": 10, "clue": "Mount Everest sits directly on the border between Tibet and this landlocked Asian country.", "answer": "What is Nepal?" },
+        { "points": 15, "clue": "Bordered by France on three sides, this microstate is the second-smallest independent country in the world.", "answer": "What is Monaco?" },
+        { "points": 15, "clue": "This landlocked kingdom is entirely surrounded and enclaved by the country of South Africa.", "answer": "What is Lesotho?" },
+        { "points": 20, "clue": "This Russian exclave on the Baltic Sea lies between Poland and Lithuania.", "answer": "What is Kaliningrad?" },
+        { "points": 20, "clue": "This African lake is the world's second-deepest and contains roughly 16% of Earth's unfrozen freshwater.", "answer": "What is Lake Tanganyika?" }
+      ]
+    },
+
+    {
+      "category_name": "Science",
+      "clues": [
+        { "points": 2, "clue": "This essential liquid compound is represented by the chemical formula H2O.", "answer": "What is water?" },
+        { "points": 2, "clue": "This gas is what humans and animals must inhale from the atmosphere to survive.", "answer": "What is oxygen?" },
+        { "points": 5, "clue": "This biochemical process allows green plants to convert sunlight into chemical energy.", "answer": "What is photosynthesis?" },
+        { "points": 5, "clue": "This planet orbits closest to the Sun inside our solar system.", "answer": "What is Mercury?" },
+        { "points": 10, "clue": "This is the lowest possible temperature, where all molecular motion stops, equivalent to 0 Kelvin.", "answer": "What is absolute zero?" },
+        { "points": 10, "clue": "Discovered by Alexander Fleming in 1928, this was the world's first effective modern antibiotic.", "answer": "What is penicillin?" },
+        { "points": 15, "clue": "This state of matter features zero electrical resistance when cooled below a threshold temperature.", "answer": "What is superconductivity?" },
+        { "points": 15, "clue": "This specific branch of biology is dedicated strictly to the scientific study of fungi.", "answer": "What is mycology?" },
+        { "points": 20, "clue": "This particle accelerator near Geneva is the world's largest and most powerful.", "answer": "What is the Large Hadron Collider?" },
+        { "points": 20, "clue": "This principle states that it is impossible to know both the exact position and momentum of a particle simultaneously.", "answer": "What is the Heisenberg Uncertainty Principle?" }
+      ]
+    },
+
+    {
+      "category_name": "History",
+      "clues": [
+        { "points": 2, "clue": "He issued the Emancipation Proclamation and led the United States during the American Civil War.", "answer": "Who is Abraham Lincoln?" },
+        { "points": 2, "clue": "This Roman general and dictator was famously assassinated by a group of senators on the Ides of March.", "answer": "Who is Julius Caesar?" },
+        { "points": 5, "clue": "This devastating bubonic plague pandemic swept through Europe in the mid-14th century.", "answer": "What is the Black Death?" },
+        { "points": 5, "clue": "This major political upheaval began in 1789 and overthrew the French monarchy.", "answer": "What is the French Revolution?" },
+        { "points": 10, "clue": "The assassination of this Archduke of Austria in Sarajevo directly triggered the outbreak of World War I.", "answer": "Who is Archduke Franz Ferdinand?" },
+        { "points": 10, "clue": "This ancient Roman city was buried under volcanic ash from Mount Vesuvius.", "answer": "What is Pompeii?" },
+        { "points": 15, "clue": "This rapid political transformation in 1868 ended the Tokugawa Shogunate in Japan.", "answer": "What is the Meiji Restoration?" },
+        { "points": 15, "clue": "This lengthy period of Roman peace and stability began under Emperor Augustus.", "answer": "What is the Pax Romana?" },
+        { "points": 20, "clue": "This Ethiopian emperor defeated Italy at the Battle of Adwa in 1896.", "answer": "Who is Menelik II?" },
+        { "points": 20, "clue": "This Chinese admiral led massive treasure voyages during the Ming dynasty.", "answer": "Who is Zheng He?" }
+      ]
+    },
+
+    {
+      "category_name": "Literature",
+      "clues": [
+        { "points": 2, "clue": "This Shakespeare tragedy tells the story of two star-crossed lovers from Verona.", "answer": "What is Romeo and Juliet?" },
+        { "points": 2, "clue": "J.K. Rowling authored the fantasy series centered around this young wizard.", "answer": "Who is Harry Potter?" },
+        { "points": 5, "clue": "George Orwell's dystopian novel introduced Big Brother and Newspeak.", "answer": "What is 1984?" },
+        { "points": 5, "clue": "Jane Austen's famous romance novel focuses on Elizabeth Bennet and Mr. Darcy.", "answer": "What is Pride and Prejudice?" },
+        { "points": 10, "clue": "This Greek epic poem attributed to Homer follows Odysseus's journey home.", "answer": "What is the Odyssey?" },
+        { "points": 10, "clue": "Ray Bradbury's dystopian novel depicts a future where books are outlawed and burned.", "answer": "What is Fahrenheit 451?" },
+        { "points": 15, "clue": "This 14th-century epic by Dante details a journey through Hell.", "answer": "What is Inferno? (Also accept: Divine Comedy)" },
+        { "points": 15, "clue": "This James Joyce masterpiece follows Leopold Bloom through Dublin in one day.", "answer": "What is Ulysses?" },
+        { "points": 20, "clue": "This Russian novel by Dostoevsky centers on the guilt of Rodion Raskolnikov.", "answer": "What is Crime and Punishment?" },
+        { "points": 20, "clue": "This Gabriel García Márquez novel chronicles the Buendía family in Macondo.", "answer": "What is One Hundred Years of Solitude?" }
+      ]
+    },
+
+    {
+      "category_name": "Technology",
+      "clues": [
+        { "points": 2, "clue": "This company created the iPhone.", "answer": "What is Apple?" },
+        { "points": 2, "clue": "HTML is primarily used to create these.", "answer": "What are web pages?" },
+        { "points": 5, "clue": "This programming language is famous for its use in AI and data science.", "answer": "What is Python?" },
+        { "points": 5, "clue": "This social media platform originally limited users to 140-character posts.", "answer": "What is Twitter? (Also accept: X)" },
+        { "points": 10, "clue": "This open-source operating system kernel was created by Linus Torvalds.", "answer": "What is Linux?" },
+        { "points": 10, "clue": "The binary system uses these two digits only.", "answer": "What are 0 and 1?" },
+        { "points": 15, "clue": "This cryptographic technology powers decentralized currencies like Bitcoin.", "answer": "What is blockchain?" },
+        { "points": 15, "clue": "This type of malware encrypts a victim's files and demands payment.", "answer": "What is ransomware?" },
+        { "points": 20, "clue": "This law predicts that transistor counts on microchips roughly double every two years.", "answer": "What is Moore's Law?" },
+        { "points": 20, "clue": "This distributed version control system is widely used on GitHub.", "answer": "What is Git?" }
+      ]
+    },
+
+    {
+      "category_name": "Movies",
+      "clues": [
+        { "points": 2, "clue": "This 1997 James Cameron film tells the story of a doomed ocean liner.", "answer": "What is Titanic?" },
+        { "points": 2, "clue": "Bruce Wayne secretly fights crime as this superhero.", "answer": "Who is Batman?" },
+        { "points": 5, "clue": "This sci-fi franchise features Jedi and Sith warriors.", "answer": "What is Star Wars?" },
+        { "points": 5, "clue": "Christopher Nolan directed this 2010 dream-heist film.", "answer": "What is Inception?" },
+        { "points": 10, "clue": "This movie contains the line 'Life is like a box of chocolates.'", "answer": "What is Forrest Gump?" },
+        { "points": 10, "clue": "This film became the highest-grossing movie of all time.", "answer": "What is Avatar?" },
+        { "points": 15, "clue": "This mafia classic centers on the Corleone family.", "answer": "What is The Godfather?" },
+        { "points": 15, "clue": "This South Korean thriller won Best Picture at the Oscars in 2020.", "answer": "What is Parasite?" },
+        { "points": 20, "clue": "This silent sci-fi film by Fritz Lang depicts a futuristic dystopian city.", "answer": "What is Metropolis?" },
+        { "points": 20, "clue": "This Akira Kurosawa epic inspired The Magnificent Seven.", "answer": "What is Seven Samurai?" }
+      ]
+    },
+
+    {
+      "category_name": "Music",
+      "clues": [
+        { "points": 2, "clue": "This artist is widely known as the King of Pop.", "answer": "Who is Michael Jackson?" },
+        { "points": 2, "clue": "This instrument commonly has 88 keys.", "answer": "What is a piano?" },
+        { "points": 5, "clue": "This British band released the album Abbey Road.", "answer": "Who are The Beatles?" },
+        { "points": 5, "clue": "This singer performed Rolling in the Deep.", "answer": "Who is Adele?" },
+        { "points": 10, "clue": "This composer continued creating music even after becoming deaf.", "answer": "Who is Beethoven?" },
+        { "points": 10, "clue": "This genre from Jamaica is closely associated with Bob Marley.", "answer": "What is reggae?" },
+        { "points": 15, "clue": "This Pink Floyd album features a prism on its cover.", "answer": "What is The Dark Side of the Moon?" },
+        { "points": 15, "clue": "This guitarist was nicknamed Slowhand.", "answer": "Who is Eric Clapton?" },
+        { "points": 20, "clue": "This jazz legend nicknamed Satchmo played the trumpet.", "answer": "Who is Louis Armstrong?" },
+        { "points": 20, "clue": "This Russian composer wrote The Rite of Spring.", "answer": "Who is Igor Stravinsky?" }
+      ]
+    },
+
+    {
+      "category_name": "Gaming",
+      "clues": [
+        { "points": 2, "clue": "This Nintendo mascot is an Italian plumber.", "answer": "Who is Mario?" },
+        { "points": 2, "clue": "Minecraft was originally created by this developer.", "answer": "Who is Notch? (Also accept: Markus Persson)" },
+        { "points": 5, "clue": "This battle royale game features building mechanics and a shrinking storm.", "answer": "What is Fortnite?" },
+        { "points": 5, "clue": "This Nintendo handheld line includes the DS and 3DS.", "answer": "What is Game Boy?" },
+        { "points": 10, "clue": "This game franchise is set in Hyrule.", "answer": "What is The Legend of Zelda?" },
+        { "points": 10, "clue": "This sandbox survival game features Creepers.", "answer": "What is Minecraft?" },
+        { "points": 15, "clue": "This Blizzard MMORPG takes place in Azeroth.", "answer": "What is World of Warcraft?" },
+        { "points": 15, "clue": "This company created Steam and Half-Life.", "answer": "What is Valve?" },
+        { "points": 20, "clue": "This difficult FromSoftware game won Game of the Year in 2022.", "answer": "What is Elden Ring?" },
+        { "points": 20, "clue": "This yellow arcade character eats dots in a maze.", "answer": "What is Pac-Man?" }
+      ]
+    },
+
+    {
+      "category_name": "Mythology",
+      "clues": [
+        { "points": 2, "clue": "This Greek god ruled Mount Olympus with thunderbolts.", "answer": "Who is Zeus?" },
+        { "points": 2, "clue": "This Norse god wielded the hammer Mjolnir.", "answer": "Who is Thor?" },
+        { "points": 5, "clue": "This Egyptian god of the dead is depicted with a jackal head.", "answer": "Who is Anubis?" },
+        { "points": 5, "clue": "This mythical creature combines a lion with eagle wings and head.", "answer": "What is a griffin?" },
+        { "points": 10, "clue": "This Greek hero completed twelve impossible labors.", "answer": "Who is Hercules? (Also accept: Heracles)" },
+        { "points": 10, "clue": "This Norse apocalypse foretells the destruction of the gods.", "answer": "What is Ragnarok?" },
+        { "points": 15, "clue": "This Japanese sun goddess is central to Shinto belief.", "answer": "Who is Amaterasu?" },
+        { "points": 15, "clue": "This bird is reborn from its own ashes.", "answer": "What is a phoenix?" },
+        { "points": 20, "clue": "This ancient Mesopotamian king searched for immortality.", "answer": "Who is Gilgamesh?" },
+        { "points": 20, "clue": "This Hindu goddess rides a tiger and symbolizes divine power.", "answer": "Who is Durga?" }
+      ]
+    },
+
+    {
+      "category_name": "Space",
+      "clues": [
+        { "points": 2, "clue": "This planet is known as the Red Planet.", "answer": "What is Mars?" },
+        { "points": 2, "clue": "This galaxy contains our Solar System.", "answer": "What is the Milky Way?" },
+        { "points": 5, "clue": "This telescope launched in 1990 revolutionized astronomy.", "answer": "What is the Hubble Space Telescope?" },
+        { "points": 5, "clue": "This planet is famous for its rings.", "answer": "What is Saturn?" },
+        { "points": 10, "clue": "This dwarf planet was once considered the ninth planet.", "answer": "What is Pluto?" },
+        { "points": 10, "clue": "This was the first artificial satellite launched into orbit.", "answer": "What is Sputnik 1?" },
+        { "points": 15, "clue": "This NASA program landed humans on the Moon.", "answer": "What is Apollo?" },
+        { "points": 15, "clue": "This nearest star system includes Proxima Centauri.", "answer": "What is Alpha Centauri?" },
+        { "points": 20, "clue": "This boundary around a black hole marks the point of no return.", "answer": "What is the event horizon?" },
+        { "points": 20, "clue": "This physicist proposed the theory of general relativity.", "answer": "Who is Albert Einstein?" }
+      ]
+    },
+    {
+      "category_name": "Sports",
+      "clues": [
+        { "points": 2, "clue": "This global tournament is held every four years to crown the world champion of football.", "answer": "What is the FIFA World Cup?" },
+        { "points": 2, "clue": "He is widely regarded as the greatest sprinter of all time, holding world records in the 100m and 200m.", "answer": "Who is Usain Bolt?" },
+        { "points": 5, "clue": "This prestigious tennis tournament is played on grass courts in London every summer.", "answer": "What is Wimbledon?" },
+        { "points": 5, "clue": "An American football field, excluding the end zones, is exactly this many yards long.", "answer": "What is 100 yards?" },
+        { "points": 10, "clue": "This Canadian ice hockey legend wore the number 99 and is universally nicknamed 'The Great One.'", "answer": "Who is Wayne Gretzky?" },
+        { "points": 10, "clue": "In golf, scoring three strokes under par on a single hole is known by this avian term.", "answer": "What is an albatross? (Also accept: double eagle)" },
+        { "points": 15, "clue": "This country has won the most FIFA World Cup titles in football history.", "answer": "What is Brazil?" },
+        { "points": 15, "clue": "This grueling Olympic sport involves athletes competing continuously across swimming, cycling, and running.", "answer": "What is a triathlon?" },
+        { "points": 20, "clue": "This legendary American track and field athlete won four gold medals at the 1936 Berlin Olympics, directly defying Nazi racial ideology.", "answer": "Who is Jesse Owens?" },
+        { "points": 20, "clue": "This is the only country to have won at least one gold medal at every single Summer Olympic Games since their modern inception.", "answer": "What is Great Britain?" }
+      ]
+    },
+
+    {
+      "category_name": "Food & Drink",
+      "clues": [
+        { "points": 2, "clue": "This solid dairy product is made by churning milk or cream and is a staple spread worldwide.", "answer": "What is butter?" },
+        { "points": 2, "clue": "This popular Italian dish traditionally consists of a flattened base of leavened dough topped with tomatoes and cheese.", "answer": "What is pizza?" },
+        { "points": 5, "clue": "This highly caffeinated hot beverage is brewed from roasted beans and is popular in the morning.", "answer": "What is coffee?" },
+        { "points": 5, "clue": "This single-celled fungus is fundamentally used in baking to make bread dough rise.", "answer": "What is yeast?" },
+        { "points": 10, "clue": "This traditional Japanese soup is made from a fermented soybean paste broth, often containing tofu and seaweed.", "answer": "What is miso soup?" },
+        { "points": 10, "clue": "This incredibly expensive spice, known for its vibrant crimson threads, is harvested by hand from the stigmas of a crocus flower.", "answer": "What is saffron?" },
+        { "points": 15, "clue": "This green Mexican dip is primarily made from mashed ripe avocados, lime juice, and salt.", "answer": "What is guacamole?" },
+        { "points": 15, "clue": "This essential process of heating liquids to kill harmful pathogens was named after a famous French scientist.", "answer": "What is pasteurization?" },
+        { "points": 20, "clue": "This layered Italian dessert made with ladyfingers, coffee, and mascarpone cheese translates literally to 'pick me up.'", "answer": "What is Tiramisu?" },
+        { "points": 20, "clue": "This effervescent, slightly sour fermented tea drink originated in East Asia and is prized for its probiotics.", "answer": "What is kombucha?" }
+      ]
+    },
+
+    {
+      "category_name": "Art & Architecture",
+      "clues": [
+        { "points": 2, "clue": "This Italian Renaissance master painted the Mona Lisa and designed early concepts for flying machines.", "answer": "Who is Leonardo da Vinci?" },
+        { "points": 2, "clue": "Located in Agra, India, this white marble mausoleum was built by Mughal Emperor Shah Jahan for his favorite wife.", "answer": "What is the Taj Mahal?" },
+        { "points": 5, "clue": "This Dutch post-impressionist artist famously cut off part of his own ear and painted The Starry Night.", "answer": "Who is Vincent van Gogh?" },
+        { "points": 5, "clue": "This medieval European architectural style is characterized by pointed arches, ribbed vaults, and flying buttresses.", "answer": "What is Gothic architecture?" },
+        { "points": 10, "clue": "This Spanish surrealist artist is best known for his dreamlike painting of melting pocket watches, The Persistence of Memory.", "answer": "Who is Salvador Dalí?" },
+        { "points": 10, "clue": "This landmark performance venue in Sydney, Australia, features a highly distinct expressionist design resembling concrete sails.", "answer": "What is the Sydney Opera House?" },
+        { "points": 15, "clue": "This Mexican artist is celebrated for her uncompromising and vividly colored self-portraits dealing with chronic pain and identity.", "answer": "Who is Frida Kahlo?" },
+        { "points": 15, "clue": "This ancient Greek temple dedicated to the goddess Athena stands prominently atop the Acropolis of Athens.", "answer": "What is the Parthenon?" },
+        { "points": 20, "clue": "This 20th-century artistic movement, spearheaded by Pablo Picasso, revolutionized European painting by breaking subjects down into geometric forms.", "answer": "What is Cubism?" },
+        { "points": 20, "clue": "This influential American architect designed the iconic 'Fallingwater' residence over a waterfall in Pennsylvania.", "answer": "Who is Frank Lloyd Wright?" }
+      ]
+    },
+
+    {
+      "category_name": "Animals & Nature",
+      "clues": [
+        { "points": 2, "clue": "Inhabiting oceans worldwide, this massive marine mammal holds the record as the largest animal to ever exist.", "answer": "What is the blue whale?" },
+        { "points": 2, "clue": "This African equid is instantly recognizable by its distinct pattern of black and white stripes.", "answer": "What is a zebra?" },
+        { "points": 5, "clue": "This big cat native to Africa and Iran is the fastest land animal, reaching speeds up to 70 miles per hour.", "answer": "What is a cheetah?" },
+        { "points": 5, "clue": "This famous marsupial native to Australia carries its undeveloped young inside a specialized pouch.", "answer": "What is a kangaroo?" },
+        { "points": 10, "clue": "Native to Africa, this giant flightless bird is the largest and heaviest living bird species in the world.", "answer": "What is an ostrich?" },
+        { "points": 10, "clue": "This massive, biodiverse marine ecosystem off the coast of Queensland, Australia, is the largest coral reef system on Earth.", "answer": "What is the Great Barrier Reef?" },
+        { "points": 15, "clue": "This zoological term describes animals, like deer or hamsters, that are active primarily during the twilight hours of dawn and dusk.", "answer": "What is crepuscular?" },
+        { "points": 15, "clue": "These specialized respiratory organs allow aquatic organisms like fish to extract dissolved oxygen directly from water.", "answer": "What are gills?" },
+        { "points": 20, "clue": "This semi-aquatic Australian creature is one of the world's few monotremes, meaning it is a mammal that lays eggs.", "answer": "What is a platypus?" },
+        { "points": 20, "clue": "This specific suborder of primates, which includes lemurs, bushbabies, and lorises, represents the most primitive living lineages.", "answer": "What are prosimians?" }
+      ]
+    },
+
+    {
+      "category_name": "Economics & Business",
+      "clues": [
+        { "points": 2, "clue": "This is the official shared currency used by the majority of member states within the European Union.", "answer": "What is the Euro?" },
+        { "points": 2, "clue": "This massive American e-commerce and cloud computing giant was originally founded as an online bookstore by Jeff Bezos.", "answer": "What is Amazon?" },
+        { "points": 5, "clue": "This fundamental law of economics states that all else being equal, as the price of a good rises, the consumer desire for it falls.", "answer": "What is the Law of Demand?" },
+        { "points": 5, "clue": "This stock market index tracks the performance of 500 of the largest corporations listed on stock exchanges in the United States.", "answer": "What is the S&P 500?" },
+        { "points": 10, "clue": "This 18th-century Scottish philosopher is widely considered the father of modern economics after writing The Wealth of Nations.", "answer": "Who is Adam Smith?" },
+        { "points": 10, "clue": "This financial market term refers to a prolonged period of declining asset prices, typically accompanied by widespread investor pessimism.", "answer": "What is a bear market?" },
+        { "points": 15, "clue": "This toxic economic condition occurs when an economy experiences slow economic growth paired with high unemployment and high inflation.", "answer": "What is stagflation?" },
+        { "points": 15, "clue": "Headquartered in Geneva, this international intergovernmental organization regulates and facilitates global trade between nations.", "answer": "What is the World Trade Organization? (Also accept: WTO)" },
+        { "points": 20, "clue": "This economic term describes a market structure that is completely dominated by a very small number of large sellers or producers.", "answer": "What is an oligopoly?" },
+        { "points": 20, "clue": "This influential British economist advocated for increased government spending and lower taxes to stimulate demand during economic depressions.", "answer": "Who is John Maynard Keynes?" }
+      ]
+    },
+
+    {
+      "category_name": "Theater & Stage",
+      "clues": [
+        { "points": 2, "clue": "This famous theater district in New York City is globally celebrated for its large-scale commercial musicals.", "answer": "What is Broadway?" },
+        { "points": 2, "clue": "This classical performing art form combines theatrical acting and a dramatic libretto with a full orchestral score and sung vocals.", "answer": "What is opera?" },
+        { "points": 5, "clue": "Originating during the Italian Renaissance, this highly technical classical dance form was refined in France and Russia.", "answer": "What is ballet?" },
+        { "points": 5, "clue": "This legendary American playwright authored classic theatrical works like Death of a Salesman and The Crucible.", "answer": "Who is Arthur Miller?" },
+        { "points": 10, "clue": "This prestigious annual award ceremony recognizes outstanding achievements in live Broadway theater productions.", "answer": "What are the Tony Awards?" },
+        { "points": 10, "clue": "This avant-garde theatrical movement, associated with Samuel Beckett, emphasizes the illogical and meaningless nature of human existence.", "answer": "What is the Theater of the Absurd?" },
+        { "points": 15, "clue": "This traditional form of Japanese musical drama features actors performing in stylized masks with slow, highly controlled movements.", "answer": "What is Noh?" },
+        { "points": 15, "clue": "This French existentialist philosopher wrote the 1944 play No Exit, which features the famous line 'Hell is other people.'", "answer": "Who is Jean-Paul Sartre?" },
+        { "points": 20, "clue": "This 19th-century Norwegian playwright, who wrote A Doll's House and Hedda Gabler, is frequently called the 'father of realism.'", "answer": "Who is Henrik Ibsen?" },
+        { "points": 20, "clue": "This theatrical device features a long dramatic speech delivered by a character alone on stage, exposing their innermost thoughts to the audience.", "answer": "What is a soliloquy?" }
+      ]
+    },
+
+    {
+      "category_name": "Fashion & Design",
+      "clues": [
+        { "points": 2, "clue": "This legendary French luxury fashion house was founded in Paris by Gabrielle 'Coco' in 1910.", "answer": "What is Chanel?" },
+        { "points": 2, "clue": "This exceptionally durable cotton warp-faced textile is traditionally used to construct rugged blue jeans.", "answer": "What is denim?" },
+        { "points": 5, "clue": "This northern Italian metropolis is widely recognized as a global fashion capital and hosts an iconic biannual Fashion Week.", "answer": "What is Milan?" },
+        { "points": 5, "clue": "This traditional patterned textile, originating in Scotland, features intersecting horizontal and vertical bands in multiple colors.", "answer": "What is tartan? (Also accept: plaid)" },
+        { "points": 10, "clue": "This high-end German fashion brand is internationally famous for its luxury fragrances, sleek eyewear, and sharply tailored menswear suits.", "answer": "What is Hugo Boss?" },
+        { "points": 10, "clue": "This French phrase translates literally to 'high dressmaking' and refers to the creation of exclusive, custom-fitted luxury clothing.", "answer": "What is Haute Couture?" },
+        { "points": 15, "clue": "This influential American fashion designer launched his namesake corporate empire in 1967, iconic for its preppy Polo sportswear line.", "answer": "Who is Ralph Lauren?" },
+        { "points": 15, "clue": "This New Jersey-based corporation created a proprietary color matching space that serves as the global standard for the design industry.", "answer": "What is Pantone?" },
+        { "points": 20, "clue": "This British fashion designer was celebrated for his provocative, avant-garde runway shows and served as head designer at Givenchy.", "answer": "Who is Alexander McQueen?" },
+        { "points": 20, "clue": "Prominent in the 1920s and 30s, this design movement features sleek geometric shapes, bold colors, and lavish, streamlined ornamentation.", "answer": "What is Art Deco?" }
+      ]
+    },
+
+    {
+      "category_name": "Human Body & Health",
+      "clues": [
+        { "points": 2, "clue": "This hollow muscular organ acts as the central pump of the human circulatory system.", "answer": "What is the heart?" },
+        { "points": 2, "clue": "This is the single largest organ of the human body, acting as our primary protective barrier against the outside world.", "answer": "What is the skin?" },
+        { "points": 5, "clue": "This vital pair of bean-shaped organs filters metabolic waste products directly from the blood to produce urine.", "answer": "What are the kidneys?" },
+        { "points": 5, "clue": "Also known as leukocytes, this specific class of blood cells is primarily responsible for immune defense against infections.", "answer": "What are white blood cells?" },
+        { "points": 10, "clue": "Located entirely within the human thigh, this is anatomically the longest and strongest bone in the human skeleton.", "answer": "What is the femur?" },
+        { "points": 10, "clue": "This complex bodily system consists of glands that secrete hormones directly into the circulatory system to regulate metabolism and growth.", "answer": "What is the endocrine system?" },
+        { "points": 15, "clue": "This vital structural conduit connects a developing fetus to the placenta, facilitating nutrient and gas exchange.", "answer": "What is the umbilical cord?" },
+        { "points": 15, "clue": "This clear, colorless bodily fluid circulates within the ventricles of the brain and the surrounding spinal cord to provide buoyancy and immunological protection.", "answer": "What is cerebrospinal fluid?" },
+        { "points": 20, "clue": "This progressive neurological disorder is characterized by the degeneration of dopamine-producing neurons in the substantia nigra, causing motor tremors.", "answer": "What is Parkinson's disease?" },
+        { "points": 20, "clue": "This class of synovial joint, found in the human shoulder and hip, permits the widest range of multi-axial movement in the body.", "answer": "What is a ball-and-socket joint?" }
+      ]
+    },
+
+    {
+      "category_name": "Philosophy",
+      "clues": [
+        { "points": 2, "clue": "This classical Athenian philosopher was the teacher of Plato and was famously executed by being forced to drink hemlock.", "answer": "Who is Socrates?" },
+        { "points": 2, "clue": "This foundational branch of philosophy involves systematizing, defending, and recommending concepts of right and wrong moral behavior.", "answer": "What is ethics?" },
+        { "points": 5, "clue": "This French rationalist philosopher famously formulated the foundational proposition 'Cogito, ergo sum' ('I think, therefore I am').", "answer": "Who is René Descartes?" },
+        { "points": 5, "clue": "This major branch of philosophy is explicitly dedicated to studying the nature, origin, scope, and limits of human knowledge.", "answer": "What is epistemology?" },
+        { "points": 10, "clue": "This 19th-century German cultural critic wrote Thus Spoke Zarathustra and introduced the provocative concept of the Übermensch.", "answer": "Who is Friedrich Nietzsche?" },
+        { "points": 10, "clue": "Founded in Athens by Zeno of Citium, this school of thought teaches the development of self-control and fortitude as a means to overcome destructive emotions.", "answer": "What is Stoicism?" },
+        { "points": 15, "clue": "This 18th-century German Enlightenment thinker formulated the 'categorical imperative' as the core framework of his deontological ethics.", "answer": "Who is Immanuel Kant?" },
+        { "points": 15, "clue": "This foundational branch of philosophy investigates the fundamental nature of reality, including the abstract relationship between mind, matter, and existence.", "answer": "What is metaphysics?" },
+        { "points": 20, "clue": "This French-Algerian existentialist author developed the philosophy of the Absurd, notably explored in his essay The Myth of Sisyphus.", "answer": "Who is Albert Camus?" },
+        { "points": 20, "clue": "This ancient Chinese text, traditionally attributed to the sage Laozi, serves as the essential foundational text for philosophical Taoism.", "answer": "What is the Daodejing? (Also accept: Tao Te Ching)" }
+      ]
+    },
+
+    {
+      "category_name": "Language & Linguistics",
+      "clues": [
+        { "points": 2, "clue": "This is the most widely spoken language in the world today when counting both native and non-native speakers combined.", "answer": "What is English?" },
+        { "points": 2, "clue": "This basic punctuation mark is placed at the conclusion of a declarative sentence to denote a full stop.", "answer": "What is a period? (Also accept: full stop)" },
+        { "points": 5, "clue": "This branch of linguistics is dedicated to the objective scientific study of the physical production and perception of speech sounds.", "answer": "What is phonetics?" },
+        { "points": 5, "clue": "This grammatical term describes a word that expresses a meaning directly opposed to that of another word.", "answer": "What are antonyms?" },
+        { "points": 10, "clue": "This massive language family, containing Hindi, Spanish, Russian, and English, possesses the greatest number of speakers globally.", "answer": "What is the Indo-European language family?" },
+        { "points": 10, "clue": "This structural linguistic term refers to the rigid set of rules and principles that govern how words are ordered to construct sentences.", "answer": "What is syntax?" },
+        { "points": 15, "clue": "Constructed in 1887 by L.L. Zamenhof, this is the most widely spoken artificial auxiliary language in the world.", "answer": "What is Esperanto?" },
+        { "points": 15, "clue": "This formal writing system utilized by the ancient Egyptians blended logographic, syllabic, and alphabetic elements into graphic symbols.", "answer": "What are hieroglyphs?" },
+        { "points": 20, "clue": "This famous hypothesis of linguistic relativity argues that the structural framework of a spoken language actively shapes its speakers' cognitive worldview.", "answer": "What is the Sapir-Whorf hypothesis?" },
+        { "points": 20, "clue": "This Northwest Semitic language was successfully revived as a modern, spoken national language during the 19th and 20th centuries after centuries of being used purely liturgically.", "answer": "What is Hebrew?" }
+      ]
+    }
+  ]
+}
