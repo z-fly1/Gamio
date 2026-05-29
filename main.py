@@ -605,7 +605,29 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
         return
 
-    
+
+async def handle_help_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle the Help button in private messages."""
+    query = update.callback_query
+    await query.answer()
+
+    banner_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "_bot", "banner-1.png")
+
+    keyboard = [
+        [InlineKeyboardButton("Commands", callback_data="help_commands")],
+        [InlineKeyboardButton("About", callback_data="help_about")],
+        [InlineKeyboardButton("Support", callback_data="help_support")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    with open(banner_path, 'rb') as f:
+        await context.bot.send_photo(
+            chat_id=query.message.chat_id,
+            photo=f,
+            caption="What do you need help with?",
+            reply_markup=reply_markup
+        )
+
 
 
     # Check if bot is admin
@@ -6013,6 +6035,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(handle_20q_callback, pattern="^view_secret_word$"))
     application.add_handler(CallbackQueryHandler(handle_c8_callback, pattern="^c8_"))
     application.add_handler(CallbackQueryHandler(handle_sfl_callback, pattern="^sfl_reveal$"))
+    application.add_handler(CallbackQueryHandler(handle_help_callback, pattern="^help$"))
     application.add_handler(InlineQueryHandler(inline_query_handler))
     application.add_handler(ChosenInlineResultHandler(chosen_inline_result_handler))
     application.add_handler(PollAnswerHandler(handle_poll_answer))
