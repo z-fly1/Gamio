@@ -20,15 +20,12 @@ Powerful Telegram bot designed to host and manage games in group chats.
 
 ## Tech Stack
 
-[![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-framework-black)](https://flask.palletsprojects.com/)
-[![Pillow](https://img.shields.io/badge/Pillow-image%20processing-orange)](https://python-pillow.org/)
-[![NumPy](https://img.shields.io/badge/NumPy-numerical-blue)](https://numpy.org/)
-[![Google Generative AI](https://img.shields.io/badge/Google%20Generative%20AI-Gemini-red)](https://ai.google.dev/)
-[![Supabase](https://img.shields.io/badge/Supabase-backend-green)](https://supabase.com/)
+<img src="https://i.ibb.co/bRzTfCCG/1.png" width="20"> Python &nbsp;&nbsp;&nbsp;&nbsp; <img src="https://i.ibb.co/JjSfRBHs/2.png" width="20"> Flask &nbsp;&nbsp;&nbsp;&nbsp; <img src="https://i.ibb.co/bjX9nV0m/3.png" width="20"> Supabase &nbsp;&nbsp;&nbsp;&nbsp;<img src="https://i.ibb.co/MkrhRh4S/htm.png" width="20"> HTML5
 
 ## Game Library
 
+<details>
+<summary>Click to expand</summary>
 
 - **Word Unscramble**: Rearrange a provided set of scrambled letters into a valid word.
 - **Word Connect**: Identify and submit multiple valid words derived from a specific set of letters.
@@ -58,6 +55,8 @@ Powerful Telegram bot designed to host and manage games in group chats.
 
 - **UNO**: A fully-featured digital version of the world-famous card game.
 - **Crazy 8**: Match ranks or suits to clear your hand in this classic strategic card game.
+
+</details>
 
 ## Contributing
 
