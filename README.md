@@ -13,7 +13,7 @@ Powerful Telegram bot designed to host and manage games in group chats.
 
 
 - **20+ Group Games:** Play a variety of text-based games directly inside Telegram groups.
-- **HTML5 Web App Games:**
+- **HTML5 Games:**
     Play Interactive Telegram HTML5 Games.
 - **Bot Cloning:**
     Create your own instance of Gamio and host games in your own groups
