@@ -5969,10 +5969,10 @@ def _build_game_filter_message():
 
 
 MINI_GAMES = {
-    "flappybird": ("Flappy Bird 🐦", "flappy-bird/flappybird.html"),
-    "puzzletile": ("2048 🔢", "2048/2048.html"),
-    "candycrush": ("Candy Crush 🍬", "candy-crush/candycrush.html"),
-    "typerace": ("Type Race 🏎", "type-race/typerace.html")
+    "flappybird": ("Flappy Bird", "flappy-bird/flappybird.html"),
+    "puzzletile": ("2048", "2048/2048.html"),
+    "candycrush": ("Candy Crush", "candy-crush/candycrush.html"),
+    "typerace": ("Type Race", "type-race/typerace.html")
 }
 
 # RC4 for score decryption
