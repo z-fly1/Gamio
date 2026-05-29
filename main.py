@@ -5970,9 +5970,8 @@ def _build_game_filter_message():
 
 MINI_GAMES = {
     "flappybird": ("Flappy Bird 🐦", "flappy-bird/flappybird.html"),
-    "2048": ("2048 🔢", "2048/2048.html"),
+    "puzzletile": ("2048 🔢", "2048/2048.html"),
     "candycrush": ("Candy Crush 🍬", "candy-crush/candycrush.html"),
-    "pianotiles": ("Piano Tiles 🎹", "piano-tiles/pianotiles.html"),
     "typerace": ("Type Race 🏎", "type-race/typerace.html")
 }
 
@@ -6223,17 +6222,33 @@ def main() -> None:
                 
                 user_id = int(score_data.get('user_id'))
                 score = int(score_data.get('score'))
+                inline_message_id = score_data.get('inline_message_id', '')
+                chat_id = score_data.get('chat_id', '')
+                message_id = score_data.get('message_id', '')
                 
-                # Persistent save
-                from leaderboard import record_game_scores
                 global BOT_MAIN_LOOP
                 if BOT_MAIN_LOOP is None:
                     return jsonify({"ok": False, "error": "Bot loop not ready"}), 500
-                    
-                asyncio.run_coroutine_threadsafe(
-                    record_game_scores([(user_id, score)], "html5", 0, application),
-                    loop=BOT_MAIN_LOOP
-                )
+                
+                async def sync_score():
+                    try:
+                        if inline_message_id:
+                            await application.bot.set_game_score(
+                                user_id=user_id,
+                                score=score,
+                                inline_message_id=inline_message_id
+                            )
+                        elif chat_id and message_id:
+                            await application.bot.set_game_score(
+                                user_id=user_id,
+                                score=score,
+                                chat_id=int(chat_id),
+                                message_id=int(message_id)
+                            )
+                    except Exception as e:
+                        logger.error(f"Native score sync error: {e}")
+                
+                asyncio.run_coroutine_threadsafe(sync_score(), loop=BOT_MAIN_LOOP)
                 
                 return jsonify({"ok": True, "score": score})
             except Exception as e:
