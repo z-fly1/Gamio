@@ -19,7 +19,7 @@ import urllib.error
 from dotenv import load_dotenv
 from flask import Flask
 
-from telegram import Update, Chat, ChatMember, ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboardButton, ReactionTypeEmoji
+from telegram import Update, Chat, ChatMember, ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboardButton, ReactionTypeEmoji, InputMediaPhoto
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -610,7 +610,6 @@ async def handle_help_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     """Handle the Help button in private messages."""
     query = update.callback_query
     await query.answer()
-    await query.message.delete()
 
     banner_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "_bot", "banner-1.png")
 
@@ -621,10 +620,8 @@ async def handle_help_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     with open(banner_path, 'rb') as f:
-        await context.bot.send_photo(
-            chat_id=query.message.chat_id,
-            photo=f,
-            caption="What do you need help with?",
+        await query.edit_message_media(
+            media=InputMediaPhoto(media=f, caption="What do you need help with?"),
             reply_markup=reply_markup
         )
 
@@ -633,6 +630,8 @@ async def handle_help_commands_callback(update: Update, context: ContextTypes.DE
     """Show available bot commands."""
     query = update.callback_query
     await query.answer()
+
+    banner_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "_bot", "banner-commands.png")
 
     text = (
         "<b>Available Commands</b>\n\n"
@@ -651,17 +650,19 @@ async def handle_help_commands_callback(update: Update, context: ContextTypes.DE
         "/minigames — Browse mini-games"
     )
     keyboard = [[InlineKeyboardButton("Back", callback_data="help_back")]]
-    await query.edit_message_caption(
-        caption=text,
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode="HTML"
-    )
+    with open(banner_path, 'rb') as f:
+        await query.edit_message_media(
+            media=InputMediaPhoto(media=f, caption=text, parse_mode="HTML"),
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
 
 
 async def handle_help_about_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Tell the user about the bot."""
     query = update.callback_query
     await query.answer()
+
+    banner_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "_bot", "banner-about.png")
 
     text = (
         "<b>About Gamio</b>\n\n"
@@ -670,11 +671,11 @@ async def handle_help_about_callback(update: Update, context: ContextTypes.DEFAU
         "Add me to a group, make me an admin, and use /start to begin!"
     )
     keyboard = [[InlineKeyboardButton("Back", callback_data="help_back")]]
-    await query.edit_message_caption(
-        caption=text,
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode="HTML"
-    )
+    with open(banner_path, 'rb') as f:
+        await query.edit_message_media(
+            media=InputMediaPhoto(media=f, caption=text, parse_mode="HTML"),
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
 
 
 async def handle_help_back_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -682,14 +683,17 @@ async def handle_help_back_callback(update: Update, context: ContextTypes.DEFAUL
     query = update.callback_query
     await query.answer()
 
+    banner_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "_bot", "banner-1.png")
+
     keyboard = [
         [InlineKeyboardButton("Commands", callback_data="help_commands"),
          InlineKeyboardButton("About", callback_data="help_about")],
     ]
-    await query.edit_message_caption(
-        caption="What do you need help with?",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
+    with open(banner_path, 'rb') as f:
+        await query.edit_message_media(
+            media=InputMediaPhoto(media=f, caption="What do you need help with?"),
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
 
 
     # Check if bot is admin
