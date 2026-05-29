@@ -193,6 +193,12 @@ class GameSession:
             self.state = GameState.JOINING
             return True
 
+        elif code == "27":
+            self.game_code = code
+            self.game = RiddlesGame(total_rounds=10)
+            self.state = GameState.JOINING
+            return True
+
         elif code == "28":
             self.game_code = code
             used_cats = None
