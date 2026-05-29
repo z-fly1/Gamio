@@ -605,6 +605,55 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         )
         return
 
+    # Check if bot is admin
+    is_admin = await check_bot_is_admin(update, context)
+    if not is_admin:
+        await update.message.reply_text(
+            "<b> Admin access require</b> "
+            "Grant admin privileges to host games."
+        )
+        return
+
+    # Check if there's already an active game
+    if game_manager.has_active_game(chat.id):
+        await update.message.reply_text(random.choice(QUIRKY_RESPONSES))
+        return
+
+    # Create a new game session
+    session = game_manager.create_game(chat.id)
+    session.initiator_id = user.id
+
+    # Check menu style setting
+    menu_style = settings_manager.get_setting(chat.id, "menu_style", "inline")
+
+    if menu_style == "list":
+        text = "<b>Gamio</b> 🕹\n\n"
+        text += "Please select a game by sending its code:\n\n"
+        for code, (name, _) in GAMES_METADATA.items():
+            text += f"<b>{code}</b> - {name}\n"
+        text += "\nSend the game code to continue..."
+
+        await update.message.reply_text(text, parse_mode="HTML")
+    else:
+        keyboard = []
+        cat_names = list(GAME_CATEGORIES.keys())
+        for i in range(0, len(cat_names), 2):
+            row = [
+                InlineKeyboardButton(cat_names[i], callback_data=f"game_cat_{cat_names[i]}", api_kwargs={"style": "primary"})
+            ]
+            if i + 1 < len(cat_names):
+                row.append(InlineKeyboardButton(cat_names[i+1], callback_data=f"game_cat_{cat_names[i+1]}", api_kwargs={"style": "primary"}))
+            keyboard.append(row)
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        await update.message.reply_text(
+            "<b>Gamio</b> 🕹\n\n"
+            "Please select a game category to see available games:",
+            reply_markup=reply_markup,
+            parse_mode="HTML"
+        )
+
 
 async def handle_help_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the Help button in private messages."""
@@ -722,58 +771,6 @@ async def handle_help_close_callback(update: Update, context: ContextTypes.DEFAU
         text="Sup\n\nAdd me to a group and make me an admin to start playing games.",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
-
-
-    # Check if bot is admin
-    is_admin = await check_bot_is_admin(update, context)
-    if not is_admin:
-        await update.message.reply_text(
-            "<b> Admin access require</b> "
-            "Grant admin privileges to host games."
-        )
-        return
-    
-    # Check if there's already an active game
-    if game_manager.has_active_game(chat.id):
-        await update.message.reply_text(random.choice(QUIRKY_RESPONSES))
-        return
-    
-    # Create a new game session
-    session = game_manager.create_game(chat.id)
-    session.initiator_id = user.id
-    
-    # Check menu style setting
-    menu_style = settings_manager.get_setting(chat.id, "menu_style", "inline")
-    
-    if menu_style == "list":
-        # Original numbered list
-        text = "<b>Gamio</b> 🕹\n\n"
-        text += "Please select a game by sending its code:\n\n"
-        for code, (name, _) in GAMES_METADATA.items():
-            text += f"<b>{code}</b> - {name}\n"
-        text += "\nSend the game code to continue..."
-        
-        await update.message.reply_text(text, parse_mode="HTML")
-    else:
-        # Categories keyboard - 2 columns
-        keyboard = []
-        cat_names = list(GAME_CATEGORIES.keys())
-        for i in range(0, len(cat_names), 2):
-            row = [
-                InlineKeyboardButton(cat_names[i], callback_data=f"game_cat_{cat_names[i]}", api_kwargs={"style": "primary"})
-            ]
-            if i + 1 < len(cat_names):
-                row.append(InlineKeyboardButton(cat_names[i+1], callback_data=f"game_cat_{cat_names[i+1]}", api_kwargs={"style": "primary"}))
-            keyboard.append(row)
-        
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await update.message.reply_text(
-            "<b>Gamio</b> 🕹\n\n"
-            "Please select a game category to see available games:",
-            reply_markup=reply_markup,
-            parse_mode="HTML"
-        )
 
 
 async def new_round_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
