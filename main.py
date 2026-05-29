@@ -668,7 +668,8 @@ async def handle_help_about_callback(update: Update, context: ContextTypes.DEFAU
         "<b>About Gamio</b>\n\n"
         "Gamio is a multiplayer party bot for Telegram with a wide variety of "
         "games including trivia, word games, guessing games, and more.\n\n"
-        "Add me to a group, make me an admin, and use /start to begin!"
+        "Made by @z_fly1\n"
+        "GitHub: https://github.com/z-fly1/Gamio"
     )
     keyboard = [[InlineKeyboardButton("Back", callback_data="help_back")]]
     with open(banner_path, 'rb') as f:
