@@ -616,6 +616,7 @@ async def handle_help_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     keyboard = [
         [InlineKeyboardButton("Commands", callback_data="help_commands"),
          InlineKeyboardButton("About", callback_data="help_about")],
+        [InlineKeyboardButton("Close", callback_data="help_close")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -689,12 +690,38 @@ async def handle_help_back_callback(update: Update, context: ContextTypes.DEFAUL
     keyboard = [
         [InlineKeyboardButton("Commands", callback_data="help_commands"),
          InlineKeyboardButton("About", callback_data="help_about")],
+        [InlineKeyboardButton("Close", callback_data="help_close")],
     ]
     with open(banner_path, 'rb') as f:
         await query.edit_message_media(
             media=InputMediaPhoto(media=f, caption="What do you need help with?"),
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
+
+
+async def handle_help_close_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Close help and return to the main start message."""
+    query = update.callback_query
+    await query.answer()
+    await query.message.delete()
+
+    bot_username = context.bot.username or "GamioBot"
+    master_username = os.environ.get("MASTER_BOT_USERNAME", "gamiorobot")
+    is_clone = bot_username.lower() != master_username.lower()
+    clone_url = f"https://t.me/{master_username}" if is_clone else f"https://t.me/newbot/{bot_username}/my_gamio_bot"
+
+    keyboard = [
+        [InlineKeyboardButton("Add me to group", url=f"https://t.me/{bot_username}?startgroup=true")],
+        [
+            InlineKeyboardButton("Clone Bot", url=clone_url),
+            InlineKeyboardButton("Help", callback_data="help")
+        ]
+    ]
+    await context.bot.send_message(
+        chat_id=query.message.chat_id,
+        text="Sup\n\nAdd me to a group and make me an admin to start playing games.",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
 
     # Check if bot is admin
@@ -6106,6 +6133,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(handle_help_commands_callback, pattern="^help_commands$"))
     application.add_handler(CallbackQueryHandler(handle_help_about_callback, pattern="^help_about$"))
     application.add_handler(CallbackQueryHandler(handle_help_back_callback, pattern="^help_back$"))
+    application.add_handler(CallbackQueryHandler(handle_help_close_callback, pattern="^help_close$"))
     application.add_handler(InlineQueryHandler(inline_query_handler))
     application.add_handler(ChosenInlineResultHandler(chosen_inline_result_handler))
     application.add_handler(PollAnswerHandler(handle_poll_answer))
