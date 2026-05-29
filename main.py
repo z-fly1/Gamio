@@ -610,13 +610,13 @@ async def handle_help_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     """Handle the Help button in private messages."""
     query = update.callback_query
     await query.answer()
+    await query.message.delete()
 
     banner_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "_bot", "banner-1.png")
 
     keyboard = [
-        [InlineKeyboardButton("Commands", callback_data="help_commands")],
-        [InlineKeyboardButton("About", callback_data="help_about")],
-        [InlineKeyboardButton("Support", callback_data="help_support")],
+        [InlineKeyboardButton("Commands", callback_data="help_commands"),
+         InlineKeyboardButton("About", callback_data="help_about")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -628,6 +628,68 @@ async def handle_help_callback(update: Update, context: ContextTypes.DEFAULT_TYP
             reply_markup=reply_markup
         )
 
+
+async def handle_help_commands_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show available bot commands."""
+    query = update.callback_query
+    await query.answer()
+
+    text = (
+        "<b>Available Commands</b>\n\n"
+        "/start — Start a game session\n"
+        "/join — Join an active game\n"
+        "/leave — Leave the current game\n"
+        "/quit — Quit the game\n"
+        "/forcequit — Force stop the game\n"
+        "/extend — Extend game time\n"
+        "/skip — Skip the current round\n"
+        "/vote — Start a vote\n"
+        "/leaderboard — View leaderboard\n"
+        "/settings — Change group settings\n"
+        "/export — Export game data\n"
+        "/flappy — Play Flappy Bird\n"
+        "/minigames — Browse mini-games"
+    )
+    keyboard = [[InlineKeyboardButton("Back", callback_data="help_back")]]
+    await query.edit_message_caption(
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="HTML"
+    )
+
+
+async def handle_help_about_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Tell the user about the bot."""
+    query = update.callback_query
+    await query.answer()
+
+    text = (
+        "<b>About Gamio</b>\n\n"
+        "Gamio is a multiplayer party bot for Telegram with a wide variety of "
+        "games including trivia, word games, guessing games, and more.\n\n"
+        "Add me to a group, make me an admin, and use /start to begin!"
+    )
+    keyboard = [[InlineKeyboardButton("Back", callback_data="help_back")]]
+    await query.edit_message_caption(
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        parse_mode="HTML"
+    )
+
+
+async def handle_help_back_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Go back to the main help menu."""
+    query = update.callback_query
+    await query.answer()
+
+    keyboard = [
+        [InlineKeyboardButton("Commands", callback_data="help_commands"),
+         InlineKeyboardButton("About", callback_data="help_about")],
+    ]
+    await query.edit_message_caption(
+        caption="What do you need help with?",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
 
     # Check if bot is admin
@@ -6036,6 +6098,9 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(handle_c8_callback, pattern="^c8_"))
     application.add_handler(CallbackQueryHandler(handle_sfl_callback, pattern="^sfl_reveal$"))
     application.add_handler(CallbackQueryHandler(handle_help_callback, pattern="^help$"))
+    application.add_handler(CallbackQueryHandler(handle_help_commands_callback, pattern="^help_commands$"))
+    application.add_handler(CallbackQueryHandler(handle_help_about_callback, pattern="^help_about$"))
+    application.add_handler(CallbackQueryHandler(handle_help_back_callback, pattern="^help_back$"))
     application.add_handler(InlineQueryHandler(inline_query_handler))
     application.add_handler(ChosenInlineResultHandler(chosen_inline_result_handler))
     application.add_handler(PollAnswerHandler(handle_poll_answer))
