@@ -401,24 +401,32 @@ GAME_CATEGORIES = {
     "Word Games": {
         "games": [("1", "Word Unscramble"), ("11", "Word Connect"), ("2", "Story Builder")]
     },
+    "Movie": {
+        "games": [("6", "Guess the Movie"), ("23", "Movie Scene")]
+    },
+    "Music": {
+        "games": [("16", "Guess the Song"), ("26", "Song From Lyrics"), ("13", "Taylor Swift Or Shakespeare")]
+    },
+    "Trivia": {
+        "games": [("9", "General Knowledge"), ("28", "Jeopardy"), ("27", "Riddles")]
+    },
     "Guessing Games": {
-        "games": [
-            ("4", "Guess the Logo"), ("5", "GuessMoji"), ("10", "Guess the Character"),
-            ("6", "Guess the Movie"), ("18", "Guess the Book"), ("19", "Guess the Marvel Character"),
-            ("20", "Guess Addis"), ("22", "Name the Player"), ("23", "Movie Scene")
-        ]
+        "games": [("4", "Guess the Logo"), ("7", "Guess the Flag"), ("5", "GuessMoji"), ("20", "Guess Addis")]
     },
-    "Trivia & Knowledge": {
-        "games": [
-            ("9", "General Knowledge"), ("13", "Taylor Swift Or Shakespeare"),
-            ("7", "Guess the Flag"), ("27", "Riddles"), ("28", "Jeopardy")
-        ]
+    "Social Trends": {
+        "games": [("12", "What You Meme"), ("21", "Hear Me Out")]
     },
-    "Music & Media": {
-        "games": [("16", "Guess the Song"), ("26", "Song From Lyrics"), ("12", "What You Meme")]
+    "Mystery": {
+        "games": [("3", "Guess the Imposter"), ("25", "Who Am I"), ("15", "20 Questions")]
     },
-    "Party Games": {
-        "games": [("3", "Guess the Imposter"), ("15", "20 Questions"), ("21", "Hear Me Out"), ("25", "Who Am I")]
+    "Books": {
+        "games": [("18", "Guess the Book")]
+    },
+    "Marvel": {
+        "games": [("19", "Guess the Marvel Character")]
+    },
+    "Sports": {
+        "games": [("22", "Name the Player")]
     },
     "Card Games": {
         "games": [("17", "Crazy 8")]
